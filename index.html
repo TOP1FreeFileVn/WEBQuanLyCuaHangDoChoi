@@ -1,412 +1,264 @@
 <!DOCTYPE html>
 <html lang="vi">
-<<<<<<< HEAD
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Quản Lý Cửa Hàng - Modern UI</title>
+    <title>Hệ Thống Quản Lý Toàn Diện</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* CSS VARIABLES & RESET */
-        :root {
-            --bg-color: #f4f7f6;
-            --sidebar-color: #11101d;
-            --sidebar-width: 260px;
-            --primary-color: #007bff;
-            --secondary-color: #e4e9f7;
-            --text-color-dark: #1d1b31;
-            --text-color-light: #fff;
-            --shadow: 0 5px 10px rgba(0,0,0,0.1);
-            --transition: all 0.4s ease;
-        }
+        :root { --bg: #f4f7f6; --dark: #11101d; --primary: #007bff; --text: #333; --shadow: 0 4px 10px rgba(0,0,0,0.1); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-color-dark); overflow-x: hidden; }
-=======
-<head> 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChildrenToy Store — Quản lý</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0f0f13;
-    --surface: #17171f;
-    --surface2: #1e1e2a;
-    --border: #2a2a3a;
-    --accent: #ff6b35;
-    --accent2: #ffd166;
-    --text: #e8e8f0;
-    --muted: #6b6b88;
-    --success: #06d6a0;
-    --danger: #ef476f;
-    --info: #118ab2;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
->>>>>>> 28c228b30478bf9b8aab85dc68aa6cbd67f995e6
-
-        /* SIDEBAR STYLES */
-        .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: var(--sidebar-width); background: var(--sidebar-color); padding: 6px 14px; z-index: 99; transition: var(--transition); }
-        .sidebar .logo-details { height: 60px; display: flex; align-items: center; position: relative; }
-        .sidebar .logo-details i { font-size: 28px; color: var(--text-color-light); height: 50px; min-width: 50px; text-align: center; line-height: 50px; }
-        .sidebar .logo-details .logo_name { color: var(--text-color-light); font-size: 20px; font-weight: 600; }
-        .sidebar ul { margin-top: 20px; list-style: none; }
-        .sidebar ul li { position: relative; height: 50px; width: 100%; margin: 0 5px; list-style: none; line-height: 50px; }
-        .sidebar ul li a { display: flex; align-items: center; text-decoration: none; border-radius: 12px; transition: var(--transition); color: var(--text-color-light); }
-        .sidebar ul li a:hover, .sidebar ul li a.active { background: var(--text-color-light); color: var(--sidebar-color); }
-        .sidebar ul li a i { height: 50px; min-width: 50px; border-radius: 12px; line-height: 50px; text-align: center; font-size: 18px; }
-        .sidebar ul li a .links_name { font-size: 15px; font-weight: 400; white-space: nowrap; pointer-events: none; transition: var(--transition); }
-
-        /* MAIN CONTENT STYLES */
-        .home-section { position: relative; background: var(--bg-color); min-height: 100vh; left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); transition: var(--transition); padding: 20px; }
-        .home-section nav { display: flex; justify-content: space-between; height: 80px; background: #fff; align-items: center; padding: 0 20px; box-shadow: var(--shadow); border-radius: 12px; margin-bottom: 20px; }
-        .home-section nav .dashboard_text { font-size: 24px; font-weight: 600; color: var(--text-color-dark); }
+        body { display: flex; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
         
-        /* DATA AREA STYLES */
-        .content-area { display: none; }
-        .content-area.active { display: block; }
-        .header-content { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header-content h1 { font-size: 20px; font-weight: 600; color: #333; }
+        /* SIDEBAR */
+        .sidebar { width: 260px; background: var(--dark); color: #fff; display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar .logo { font-size: 22px; font-weight: 700; padding: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #2a2939; }
+        .nav-list { list-style: none; padding: 10px; }
+        .nav-list li a { display: flex; align-items: center; gap: 15px; padding: 12px 15px; color: #fff; text-decoration: none; border-radius: 8px; transition: 0.3s; margin-bottom: 5px; cursor: pointer; }
+        .nav-list li a:hover, .nav-list li a.active { background: #fff; color: var(--dark); font-weight: 500; }
         
-        /* BUTTONS & FORMS */
-        .btn-modern { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-modern-primary { background-color: var(--primary-color); color: #fff; }
-        .btn-modern-primary:hover { background-color: #0056b3; }
-        .btn-modern-warning { background-color: #f1c40f; color: #fff; }
-        .btn-modern-warning:hover { background-color: #d4ac0d; }
-        .btn-modern-danger { background-color: #e74c3c; color: #fff; }
-        .btn-modern-danger:hover { background-color: #c0392b; }
+        /* MAIN CONTENT */
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 20px; }
         
-        /* TABLE STYLES */
-        .table-container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: var(--shadow); overflow-x: auto; }
-        .modern-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        .modern-table thead tr { background-color: #f8f9fa; color: #333; text-align: left; font-weight: 600; border-bottom: 2px solid #ddd; }
-        .modern-table th, .modern-table td { padding: 15px 12px; }
-        .modern-table tbody tr { border-bottom: 1px solid #eee; transition: var(--transition); }
-        .modern-table tbody tr:hover { background-color: #f1f4f8; }
-        .modern-table td .action-btns { display: flex; gap: 5px; }
-
-        /* MODAL CUSTOm STYLES FOR SWEETALERT2 FORMS */
-        .swal2-modern-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        /* BUTTONS & TABLE */
+        .btn-add { background: var(--primary); color: #fff; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500; }
+        .table-wrapper { background: #fff; padding: 20px; border-radius: 10px; box-shadow: var(--shadow); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: #f8f9fa; font-weight: 600; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 18px; margin-right: 10px; transition: 0.2s; }
+        .btn-edit { color: #f39c12; }
+        .btn-delete { color: #e74c3c; }
+        .swal2-input { width: 85% !important; margin: 10px auto !important; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <div class="logo-details">
-            <i class='bx bx-cart-alt'></i>
-            <span class="logo_name">StoreAdmin</span>
-        </div>
-        <ul class="nav-list">
-            <li>
-                <a href="#" class="nav-link active" data-target="dashboard-content">
-                    <i class='bx bx-grid-alt'></i>
-                    <span class="links_name">Dashboard Tổng</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link" data-target="loaisp-content">
-                    <i class='bx bx-collection'></i>
-                    <span class="links_name">Loại Sản Phẩm</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link" data-target="sanpham-content">
-                    <i class='bx bx-box'></i>
-                    <span class="links_name">Sản Phẩm</span>
-                </a>
-            </li>
+        <div class="logo"><i class='bx bx-data'></i> Database Admin</div>
+        <ul class="nav-list" id="sidebar-menu">
             </ul>
     </div>
 
-    <section class="home-section">
-        <nav>
-            <div class="dashboard_text">Hệ Thống</div>
-            <div class="user_profile">Top1FreeFileVN Dashboard</div>
-        </nav>
-
-        <div id="dashboard-content" class="content-area active">
-            <div class="header-content">
-                <h1>Tổng Quan</h1>
-            </div>
-            <div class="table-container">
-                <p>Chào mừng đến với hệ thống quản lý. Chọn danh mục bên trái để bắt đầu.</p>
-                <div style="margin-top:20px; color:#666; font-size:13px">"Do dùng render free nên nếu nó không hiện cơ sở dữ liệu, thì các thầy copy đường link https://backendcsdl.onrender.com để kích hoạt render, em cảm ơn ạ".</div>
-            </div>
+    <div class="main-content">
+        <div class="header">
+            <h2 id="page-title">Chào mừng</h2>
+            <button class="btn-add" id="btn-add-new" style="display:none;"><i class='bx bx-plus'></i> Thêm mới</button>
         </div>
-
-        <div id="loaisp-content" class="content-area">
-            <div class="header-content">
-                <h1>Quản lý Loại Sản Phẩm</h1>
-                <button class="btn-modern btn-modern-primary" onclick="showModalLoaiSP()">
-                    <i class='bx bx-plus-circle'></i> Thêm Loại SP
-                </button>
-            </div>
-            <div class="table-container">
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th>Mã Loại</th>
-                            <th>Tên Loại</th>
-                            <th width="150">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-loaisp">
-                        </tbody>
-                </table>
-                <div id="loading-loaisp" style="display:none; text-align:center; padding: 20px; color:#666;">
-                    <i class='bx bx-loader-alt bx-spin'></i> Đang tải...
-                </div>
-            </div>
+        <div class="table-wrapper" id="table-container">
+            <p>Vui lòng chọn một danh mục bên trái để quản lý dữ liệu.</p>
         </div>
-
-        <div id="sanpham-content" class="content-area">
-            <div class="header-content">
-                <h1>Quản lý Sản Phẩm</h1>
-                <button class="btn-modern btn-modern-primary" onclick="showModalSanPham()">
-                    <i class='bx bx-plus-circle'></i> Thêm Sản Phẩm
-                </button>
-            </div>
-            <div class="table-container">
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th>Mã SP</th>
-                            <th>Tên Sản Phẩm</th>
-                            <th>Mô Tả</th>
-                            <th>Đơn Giá</th>
-                            <th>Mã Loại</th>
-                            <th width="150">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-sanpham">
-                        </tbody>
-                </table>
-                <div id="loading-sanpham" style="display:none; text-align:center; padding: 20px; color:#666;">
-                    <i class='bx bx-loader-alt bx-spin'></i> Đang tải...
-                </div>
-            </div>
-        </div>
-
-    </section>
+    </div>
 
     <script>
-        // ======= 1. CẤU HÌNH API =======
-        // CHỈ CẦN THAY THẾ DÒNG NÀY BẰNG URL BACKEND CỦA BẠN TRÊN RENDER
-        const API_URL = 'https://backendcsdl.onrender.com/api'; 
-        // VD: const API_URL = 'https://your-backend.onrender.com/api';
+        const API_URL = 'https://backendcsdl.onrender.com/api'; // Đổi thành localhost:3000/api nếu test offline
+        
+        // ==========================================
+        // CẤU HÌNH SCHEMA (CHÌA KHÓA CỦA SỰ THẦN THÁNH)
+        // ==========================================
+        const schemaConfig = {
+            loaisp: {
+                title: 'Loại Sản Phẩm', endpoint: '/loaisp', primaryKey: 'MaLoai', icon: 'bx-category',
+                fields: [
+                    { key: 'MaLoai', label: 'Mã Loại', type: 'text' },
+                    { key: 'TenLoai', label: 'Tên Loại', type: 'text' }
+                ]
+            },
+            sanpham: {
+                title: 'Sản Phẩm', endpoint: '/sanpham', primaryKey: 'MaSP', icon: 'bx-box',
+                fields: [
+                    { key: 'MaSP', label: 'Mã Sản Phẩm', type: 'text' },
+                    { key: 'Ten', label: 'Tên Sản Phẩm', type: 'text' },
+                    { key: 'MoTa', label: 'Mô Tả', type: 'text' },
+                    { key: 'DonGia', label: 'Đơn Giá', type: 'number' },
+                    { key: 'MaLoai', label: 'Mã Loại (Khóa ngoại)', type: 'text' }
+                ]
+            },
+            donvicungcap: {
+                title: 'Đơn Vị Cung Cấp', endpoint: '/donvicungcap', primaryKey: 'MaDV', icon: 'bx-buildings',
+                fields: [
+                    { key: 'MaDV', label: 'Mã ĐVCC', type: 'text' },
+                    { key: 'Ten', label: 'Tên Đơn Vị', type: 'text' },
+                    { key: 'DiaChi', label: 'Địa Chỉ', type: 'text' }
+                ]
+            },
+            khohang: {
+                title: 'Kho Hàng', endpoint: '/khohang', primaryKey: 'MaKho', icon: 'bx-store-alt',
+                fields: [
+                    { key: 'MaKho', label: 'Mã Kho', type: 'text' },
+                    { key: 'DiaChi', label: 'Địa Chỉ Kho', type: 'text' }
+                ]
+            },
+            chinhanh: {
+                title: 'Chi Nhánh', endpoint: '/chinhanh', primaryKey: 'MaCN', icon: 'bx-git-branch',
+                fields: [
+                    { key: 'MaCN', label: 'Mã Chi Nhánh', type: 'text' },
+                    { key: 'Ten', label: 'Tên Chi Nhánh', type: 'text' },
+                    { key: 'DiaChi', label: 'Địa Chỉ', type: 'text' }
+                ]
+            },
+            khachhang: {
+                title: 'Khách Hàng', endpoint: '/khachhang', primaryKey: 'MaKH', icon: 'bx-user',
+                fields: [
+                    { key: 'MaKH', label: 'Mã KH', type: 'text' },
+                    { key: 'Ten', label: 'Tên KH', type: 'text' },
+                    { key: 'TheTichDiem', label: 'Thẻ Tích Điểm', type: 'text' },
+                    { key: 'Email', label: 'Email', type: 'email' },
+                    { key: 'SoNha', label: 'Số Nhà', type: 'text' },
+                    { key: 'Phuong', label: 'Phường', type: 'text' },
+                    { key: 'Quan', label: 'Quận', type: 'text' },
+                    { key: 'ThanhPho', label: 'Thành Phố', type: 'text' }
+                ]
+            },
+            vitri: {
+                title: 'Vị Trí Công Việc', endpoint: '/vitri', primaryKey: 'MaViTri', icon: 'bx-briefcase',
+                fields: [
+                    { key: 'MaViTri', label: 'Mã Vị Trí', type: 'text' },
+                    { key: 'TenViTri', label: 'Tên Vị Trí', type: 'text' },
+                    { key: 'LuongTheoGio', label: 'Lương / Giờ', type: 'number' }
+                ]
+            },
+            nhanvien: {
+                title: 'Nhân Viên', endpoint: '/nhanvien', primaryKey: 'MaNV', icon: 'bx-id-card',
+                fields: [
+                    { key: 'MaNV', label: 'Mã NV', type: 'text' },
+                    { key: 'HoVaTen', label: 'Họ & Tên', type: 'text' },
+                    { key: 'Email', label: 'Email', type: 'email' },
+                    { key: 'SoDienThoai', label: 'Số Điện Thoại', type: 'text' },
+                    { key: 'DiaChi', label: 'Địa Chỉ', type: 'text' },
+                    { key: 'ThoiGianLamViecTrongNgay', label: 'Giờ làm/Ngày', type: 'number' },
+                    { key: 'MaCN', label: 'Mã Chi Nhánh', type: 'text' },
+                    { key: 'MaNguoiQuanLy', label: 'Mã NQL', type: 'text' },
+                    { key: 'MaViTri', label: 'Mã Vị Trí', type: 'text' }
+                ]
+            }
+        };
 
-        // ======= 2. NAV & TAB LOGIC =======
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelectorAll('.nav-link').forEach(nl => nl.classList.remove('active'));
-                document.querySelectorAll('.content-area').forEach(ca => ca.classList.remove('active'));
-                this.classList.add('active');
-                const targetId = this.getAttribute('data-target');
-                document.getElementById(targetId).classList.add('active');
-                // Auto load when tab opens
-                if(targetId === 'loaisp-content') loadLoaiSP();
-                if(targetId === 'sanpham-content') loadSanPham();
-            });
-        });
+        let currentEntityKey = null;
 
-        // ======= 3. HELPER FUNCTION =======
-        // SweetAlert2 Toast (Thông báo nhỏ ở góc)
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-        });
+        // Render Sidebar
+        const sidebarMenu = document.getElementById('sidebar-menu');
+        for (const [key, config] of Object.entries(schemaConfig)) {
+            sidebarMenu.innerHTML += `<li><a onclick="loadEntity('${key}')" id="menu-${key}"><i class='bx ${config.icon}'></i> ${config.title}</a></li>`;
+        }
 
-        // ======= 4. LOẠI SẢN PHẨM CRUD =======
-        async function loadLoaiSP() {
-            document.getElementById('tbody-loaisp').innerHTML = '';
-            document.getElementById('loading-loaisp').style.display = 'block';
+        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+
+        // Tải dữ liệu Bảng
+        async function loadEntity(key) {
+            document.querySelectorAll('.nav-list a').forEach(el => el.classList.remove('active'));
+            document.getElementById(`menu-${key}`).classList.add('active');
+            
+            currentEntityKey = key;
+            const config = schemaConfig[key];
+            
+            document.getElementById('page-title').innerText = config.title;
+            document.getElementById('btn-add-new').style.display = 'flex';
+            document.getElementById('table-container').innerHTML = '<p>Đang tải dữ liệu...</p>';
+
             try {
-                const res = await axios.get(`${API_URL}/loaisp`);
-                const tbody = document.getElementById('tbody-loaisp');
-                document.getElementById('loading-loaisp').style.display = 'none';
-                if(res.data.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999">Không có dữ liệu</td></tr>';
-                res.data.forEach(item => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${item.MaLoai}</td>
-                            <td>${item.TenLoai}</td>
-                            <td>
-                                <div class="action-btns">
-                                    <button class="btn-modern-warning btn-modern" onclick="editLoaiSP('${item.MaLoai}', '${item.TenLoai}')"><i class='bx bx-edit-alt'></i></button>
-                                    <button class="btn-modern-danger btn-modern" onclick="deleteLoaiSP('${item.MaLoai}')"><i class='bx bx-trash'></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                const res = await axios.get(`${API_URL}${config.endpoint}`);
+                const data = res.data;
+
+                // Build Table Head
+                let tableHTML = `<table><thead><tr>`;
+                config.fields.forEach(f => tableHTML += `<th>${f.label}</th>`);
+                tableHTML += `<th>Hành động</th></tr></thead><tbody>`;
+
+                // Build Table Body
+                if (data.length === 0) tableHTML += `<tr><td colspan="${config.fields.length + 1}">Chưa có dữ liệu</td></tr>`;
+                
+                data.forEach(item => {
+                    tableHTML += `<tr>`;
+                    config.fields.forEach(f => tableHTML += `<td>${item[f.key] !== null ? item[f.key] : ''}</td>`);
+                    
+                    // Nút bấm gài Data tĩnh để dễ lấy khi bấm Sửa
+                    const idVal = item[config.primaryKey];
+                    const encodedItem = encodeURIComponent(JSON.stringify(item));
+                    
+                    tableHTML += `
+                        <td>
+                            <button class="action-btn btn-edit" onclick="showModal(false, '${encodedItem}')"><i class='bx bx-edit'></i></button>
+                            <button class="action-btn btn-delete" onclick="deleteRecord('${idVal}')"><i class='bx bx-trash'></i></button>
+                        </td>
+                    </tr>`;
                 });
-            } catch (err) { 
-                document.getElementById('loading-loaisp').style.display = 'none';
-                Swal.fire('Lỗi!', 'Không thể kết nối API Loại SP! (Render có thể đang "ngủ")', 'error');
+
+                tableHTML += `</tbody></table>`;
+                document.getElementById('table-container').innerHTML = tableHTML;
+            } catch (error) {
+                document.getElementById('table-container').innerHTML = '<p style="color:red">Lỗi tải dữ liệu. Hãy kiểm tra Backend!</p>';
             }
         }
 
-        async function showModalLoaiSP() {
+        // Hiện Form Thêm / Sửa
+        async function showModal(isAdd = true, encodedData = null) {
+            const config = schemaConfig[currentEntityKey];
+            const itemData = encodedData ? JSON.parse(decodeURIComponent(encodedData)) : {};
+
+            // Sinh ô nhập liệu HTML linh hoạt
+            let htmlInputs = '';
+            config.fields.forEach(f => {
+                const val = isAdd ? '' : (itemData[f.key] || '');
+                const readonlyAttr = (!isAdd && f.key === config.primaryKey) ? 'readonly style="background:#eee"' : '';
+                htmlInputs += `<input id="swal-${f.key}" type="${f.type}" class="swal2-input" placeholder="${f.label}" value="${val}" ${readonlyAttr}>`;
+            });
+
             const { value: formValues } = await Swal.fire({
-                title: 'Thêm Loại Sản Phẩm',
-                html:
-                    '<input id="swal-maloai" class="swal2-modern-input" placeholder="Mã Loại (VD: LSP01)">' +
-                    '<input id="swal-tenloai" class="swal2-modern-input" placeholder="Tên Loại Sản Phẩm">',
+                title: isAdd ? `Thêm ${config.title}` : `Sửa ${config.title}`,
+                html: htmlInputs,
                 focusConfirm: false,
-                confirmButtonText: 'Lưu lại',
                 showCancelButton: true,
+                confirmButtonText: 'Lưu',
                 cancelButtonText: 'Hủy',
                 preConfirm: () => {
-                    return [
-                        document.getElementById('swal-maloai').value,
-                        document.getElementById('swal-tenloai').value
-                    ]
+                    let data = {};
+                    config.fields.forEach(f => data[f.key] = document.getElementById(`swal-${f.key}`).value);
+                    return data;
                 }
-            })
-            if (formValues && formValues[0] && formValues[1]) {
-                try {
-                    await axios.post(`${API_URL}/loaisp`, { MaLoai: formValues[0], TenLoai: formValues[1] });
-                    Toast.fire({ icon: 'success', title: 'Đã thêm mới thành công!' });
-                    loadLoaiSP();
-                } catch (e) { Swal.fire('Lỗi!', e.message, 'error'); }
-            }
-        }
+            });
 
-        async function editLoaiSP(id, ten) {
-            const { value: formValues } = await Swal.fire({
-                title: 'Sửa Loại Sản Phẩm',
-                html:
-                    `<input id="swal-maloai" class="swal2-modern-input" value="${id}" readonly style="background:#eee">` +
-                    `<input id="swal-tenloai" class="swal2-modern-input" value="${ten}" placeholder="Tên Loại Sản Phẩm">`,
-                focusConfirm: false,
-                confirmButtonText: 'Cập nhật',
-                showCancelButton: true,
-                cancelButtonText: 'Hủy',
-                preConfirm: () => { return document.getElementById('swal-tenloai').value }
-            })
             if (formValues) {
                 try {
-                    await axios.put(`${API_URL}/loaisp/${id}`, { TenLoai: formValues });
-                    Toast.fire({ icon: 'success', title: 'Đã cập nhật!' });
-                    loadLoaiSP();
-                } catch (e) { Swal.fire('Lỗi!', e.message, 'error'); }
+                    const pkVal = formValues[config.primaryKey];
+                    if (isAdd) {
+                        await axios.post(`${API_URL}${config.endpoint}`, formValues);
+                    } else {
+                        await axios.put(`${API_URL}${config.endpoint}/${pkVal}`, formValues);
+                    }
+                    Toast.fire({ icon: 'success', title: 'Thành công!' });
+                    loadEntity(currentEntityKey);
+                } catch (error) {
+                    Swal.fire('Lỗi', error.response?.data?.error || error.message, 'error');
+                }
             }
         }
 
-        async function deleteLoaiSP(id) {
+        // Xóa bản ghi
+        async function deleteRecord(id) {
+            const config = schemaConfig[currentEntityKey];
             Swal.fire({
-                title: 'Bạn có chắc chắn muốn xóa?',
-                text: "Dữ liệu liên quan đến Loại này cũng có thể bị ảnh hưởng.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#e74c3c',
-                cancelButtonColor: '#777',
-                confirmButtonText: 'Đồng ý xóa!',
-                cancelButtonText: 'Hủy'
+                title: 'Chắc chắn xóa?', text: `Không thể khôi phục dữ liệu này!`, icon: 'warning',
+                showCancelButton: true, confirmButtonColor: '#e74c3c', confirmButtonText: 'Xóa ngay'
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     try {
-                        await axios.delete(`${API_URL}/loaisp/${id}`);
+                        await axios.delete(`${API_URL}${config.endpoint}/${id}`);
                         Toast.fire({ icon: 'success', title: 'Đã xóa!' });
-                        loadLoaiSP();
-                    } catch (e) { Swal.fire('Lỗi!', 'Không thể xóa! (Có thể do ràng buộc khóa ngoại)', 'error'); }
+                        loadEntity(currentEntityKey);
+                    } catch (error) {
+                        Swal.fire('Lỗi', 'Không thể xóa do vướng khóa ngoại (Dữ liệu đang được dùng ở bảng khác)', 'error');
+                    }
                 }
-            })
+            });
         }
 
-        // ======= 5. SẢN PHẨM CRUD =======
-        async function loadSanPham() {
-            document.getElementById('tbody-sanpham').innerHTML = '';
-            document.getElementById('loading-sanpham').style.display = 'block';
-            try {
-                const res = await axios.get(`${API_URL}/sanpham`);
-                const tbody = document.getElementById('tbody-sanpham');
-                document.getElementById('loading-sanpham').style.display = 'none';
-                if(res.data.length === 0) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#999">Không có dữ liệu</td></tr>';
-                res.data.forEach(item => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${item.MaSP}</td>
-                            <td style="font-weight:500">${item.Ten}</td>
-                            <td>${item.MoTa || ''}</td>
-                            <td style="color:#05a">${item.DonGia.toLocaleString('vi-VN')} VND</td>
-                            <td><span style="background:#eee; padding:3px 8px; border-radius:5px; font-size:12px">${item.MaLoai}</span></td>
-                            <td>
-                                <div class="action-btns">
-                                    <button class="btn-modern-warning btn-modern" onclick="editSanPham('${item.MaSP}', '${item.Ten}', '${item.MoTa}', '${item.DonGia}', '${item.MaLoai}')"><i class='bx bx-edit-alt'></i></button>
-                                    <button class="btn-modern-danger btn-modern" onclick="deleteSanPham('${item.MaSP}')"><i class='bx bx-trash'></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } catch (err) { 
-                document.getElementById('loading-sanpham').style.display = 'none';
-                Swal.fire('Lỗi!', 'Không thể kết nối API Sản Phẩm!', 'error'); 
-            }
-        }
-
-        async function showModalSanPham() {
-            const { value: f } = await Swal.fire({
-                title: 'Thêm Sản Phẩm Mới',
-                html:
-                    '<input id="s-masp" class="swal2-modern-input" placeholder="Mã SP">' +
-                    '<input id="s-ten" class="swal2-modern-input" placeholder="Tên SP">' +
-                    '<input id="s-mota" class="swal2-modern-input" placeholder="Mô tả">' +
-                    '<input id="s-dongia" type="number" class="swal2-modern-input" placeholder="Đơn giá">' +
-                    '<input id="s-maloai" class="swal2-modern-input" placeholder="Mã Loại (Khóa ngoại)">',
-                focusConfirm: false,
-                confirmButtonText: 'Lưu', showCancelButton: true, cancelButtonText: 'Hủy',
-                preConfirm: () => { return { MaSP: document.getElementById('s-masp').value, Ten: document.getElementById('s-ten').value, MoTa: document.getElementById('s-mota').value, DonGia: document.getElementById('s-dongia').value, MaLoai: document.getElementById('s-maloai').value }}
-            })
-            if (f && f.MaSP && f.Ten && f.DonGia && f.MaLoai) {
-                try {
-                    await axios.post(`${API_URL}/sanpham`, f);
-                    Toast.fire({ icon: 'success', title: 'Thêm SP thành công!' }); loadSanPham();
-                } catch (e) { Swal.fire('Lỗi!', e.message, 'error'); }
-            }
-        }
-
-        async function editSanPham(MaSP, Ten, MoTa, DonGia, MaLoai) {
-            const { value: f } = await Swal.fire({
-                title: 'Sửa Sản Phẩm',
-                html:
-                    `<input id="s-masp" class="swal2-modern-input" value="${MaSP}" readonly style="background:#eee">` +
-                    `<input id="s-ten" class="swal2-modern-input" value="${Ten}" placeholder="Tên SP">` +
-                    `<input id="s-mota" class="swal2-modern-input" value="${MoTa !== 'null' ? MoTa : ''}" placeholder="Mô tả">` +
-                    `<input id="s-dongia" type="number" class="swal2-modern-input" value="${DonGia}" placeholder="Đơn giá">` +
-                    `<input id="s-maloai" class="swal2-modern-input" value="${MaLoai}" placeholder="Mã Loại (Khóa ngoại)">`,
-                focusConfirm: false, confirmButtonText: 'Cập nhật', showCancelButton: true, cancelButtonText: 'Hủy',
-                preConfirm: () => { return { Ten: document.getElementById('s-ten').value, MoTa: document.getElementById('s-mota').value, DonGia: document.getElementById('s-dongia').value, MaLoai: document.getElementById('s-maloai').value }}
-            })
-            if (f) {
-                try {
-                    await axios.put(`${API_URL}/sanpham/${MaSP}`, f);
-                    Toast.fire({ icon: 'success', title: 'Cập nhật SP thành công!' }); loadSanPham();
-                } catch (e) { Swal.fire('Lỗi!', e.message, 'error'); }
-            }
-        }
-
-        async function deleteSanPham(id) {
-            Swal.fire({
-                title: 'Xóa sản phẩm này?', icon: 'warning',
-                showCancelButton: true, confirmButtonColor: '#e74c3c', cancelButtonColor: '#777', confirmButtonText: 'Xóa!', cancelButtonText: 'Hủy'
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        await axios.delete(`${API_URL}/sanpham/${id}`);
-                        Toast.fire({ icon: 'success', title: 'Đã xóa!' }); loadSanPham();
-                    } catch (e) { Swal.fire('Lỗi!', e.message, 'error'); }
-                }
-            })
-        }
+        // Gắn sự kiện nút thêm mới
+        document.getElementById('btn-add-new').addEventListener('click', () => showModal(true));
     </script>
 </body>
 </html>
