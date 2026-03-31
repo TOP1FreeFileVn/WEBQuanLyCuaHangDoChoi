@@ -1,1029 +1,388 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChildrenToy Store — Quản lý</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0f0f13;
-    --surface: #17171f;
-    --surface2: #1e1e2a;
-    --border: #2a2a3a;
-    --accent: #ff6b35;
-    --accent2: #ffd166;
-    --text: #e8e8f0;
-    --muted: #6b6b88;
-    --success: #06d6a0;
-    --danger: #ef476f;
-    --info: #118ab2;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Cửa Hàng - Modern UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* CSS VARIABLES & RESET */
+        :root {
+            --bg-color: #f4f7f6;
+            --sidebar-color: #11101d;
+            --sidebar-width: 260px;
+            --primary-color: #007bff;
+            --secondary-color: #e4e9f7;
+            --text-color-dark: #1d1b31;
+            --text-color-light: #fff;
+            --shadow: 0 5px 10px rgba(0,0,0,0.1);
+            --transition: all 0.4s ease;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color-dark); overflow-x: hidden; }
 
-  /* SIDEBAR */
-  .sidebar {
-    width:240px; min-height:100vh; background:var(--surface);
-    border-right:1px solid var(--border); display:flex; flex-direction:column;
-    position:fixed; left:0; top:0; bottom:0; z-index:100;
-  }
-  .logo {
-    padding:24px 20px; border-bottom:1px solid var(--border);
-    font-family:'Syne',sans-serif; font-weight:800; font-size:18px;
-  }
-  .logo span { color:var(--accent); }
-  .logo small { display:block; font-size:11px; color:var(--muted); font-weight:400; margin-top:2px; }
-  .nav { flex:1; padding:12px 0; overflow-y:auto; }
-  .nav-group { padding:8px 16px 4px; font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); font-weight:600; }
-  .nav-item {
-    display:flex; align-items:center; gap:10px; padding:10px 20px;
-    cursor:pointer; font-size:14px; color:var(--muted); transition:.2s;
-    border-left:3px solid transparent;
-  }
-  .nav-item:hover { color:var(--text); background:var(--surface2); }
-  .nav-item.active { color:var(--accent); border-left-color:var(--accent); background:rgba(255,107,53,.08); }
-  .nav-item .icon { font-size:16px; width:20px; text-align:center; }
+        /* SIDEBAR STYLES */
+        .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: var(--sidebar-width); background: var(--sidebar-color); padding: 6px 14px; z-index: 99; transition: var(--transition); }
+        .sidebar .logo-details { height: 60px; display: flex; align-items: center; position: relative; }
+        .sidebar .logo-details i { font-size: 28px; color: var(--text-color-light); height: 50px; min-width: 50px; text-align: center; line-height: 50px; }
+        .sidebar .logo-details .logo_name { color: var(--text-color-light); font-size: 20px; font-weight: 600; }
+        .sidebar ul { margin-top: 20px; list-style: none; }
+        .sidebar ul li { position: relative; height: 50px; width: 100%; margin: 0 5px; list-style: none; line-height: 50px; }
+        .sidebar ul li a { display: flex; align-items: center; text-decoration: none; border-radius: 12px; transition: var(--transition); color: var(--text-color-light); }
+        .sidebar ul li a:hover, .sidebar ul li a.active { background: var(--text-color-light); color: var(--sidebar-color); }
+        .sidebar ul li a i { height: 50px; min-width: 50px; border-radius: 12px; line-height: 50px; text-align: center; font-size: 18px; }
+        .sidebar ul li a .links_name { font-size: 15px; font-weight: 400; white-space: nowrap; pointer-events: none; transition: var(--transition); }
 
-  /* MAIN */
-  .main { margin-left:240px; flex:1; display:flex; flex-direction:column; min-height:100vh; }
-  .topbar {
-    padding:16px 32px; border-bottom:1px solid var(--border);
-    display:flex; align-items:center; justify-content:space-between;
-    background:var(--surface); position:sticky; top:0; z-index:50;
-  }
-  .page-title { font-family:'Syne',sans-serif; font-weight:700; font-size:20px; }
-  .topbar-right { display:flex; gap:12px; align-items:center; }
-  .btn {
-    padding:8px 16px; border-radius:8px; border:none; cursor:pointer;
-    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; transition:.2s;
-  }
-  .btn-primary { background:var(--accent); color:#fff; }
-  .btn-primary:hover { background:#e55a25; }
-  .btn-danger { background:var(--danger); color:#fff; }
-  .btn-danger:hover { background:#d63060; }
-  .btn-ghost { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
-  .btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
-  .btn-sm { padding:5px 10px; font-size:12px; }
+        /* MAIN CONTENT STYLES */
+        .home-section { position: relative; background: var(--bg-color); min-height: 100vh; left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); transition: var(--transition); padding: 20px; }
+        .home-section nav { display: flex; justify-content: space-between; height: 80px; background: #fff; align-items: center; padding: 0 20px; box-shadow: var(--shadow); border-radius: 12px; margin-bottom: 20px; }
+        .home-section nav .dashboard_text { font-size: 24px; font-weight: 600; color: var(--text-color-dark); }
+        
+        /* DATA AREA STYLES */
+        .content-area { display: none; }
+        .content-area.active { display: block; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header-content h1 { font-size: 20px; font-weight: 600; color: #333; }
+        
+        /* BUTTONS & FORMS */
+        .btn-modern { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-modern-primary { background-color: var(--primary-color); color: #fff; }
+        .btn-modern-primary:hover { background-color: #0056b3; }
+        .btn-modern-warning { background-color: #f1c40f; color: #fff; }
+        .btn-modern-warning:hover { background-color: #d4ac0d; }
+        .btn-modern-danger { background-color: #e74c3c; color: #fff; }
+        .btn-modern-danger:hover { background-color: #c0392b; }
+        
+        /* TABLE STYLES */
+        .table-container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: var(--shadow); overflow-x: auto; }
+        .modern-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        .modern-table thead tr { background-color: #f8f9fa; color: #333; text-align: left; font-weight: 600; border-bottom: 2px solid #ddd; }
+        .modern-table th, .modern-table td { padding: 15px 12px; }
+        .modern-table tbody tr { border-bottom: 1px solid #eee; transition: var(--transition); }
+        .modern-table tbody tr:hover { background-color: #f1f4f8; }
+        .modern-table td .action-btns { display: flex; gap: 5px; }
 
-  /* CONTENT */
-  .content { padding:32px; flex:1; }
-  .section { display:none; }
-  .section.active { display:block; }
-
-  /* STATS */
-  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
-  .stat-card {
-    background:var(--surface); border:1px solid var(--border); border-radius:12px;
-    padding:20px; position:relative; overflow:hidden;
-  }
-  .stat-card::before {
-    content:''; position:absolute; top:0; right:0; width:80px; height:80px;
-    border-radius:0 12px 0 80px; opacity:.1;
-  }
-  .stat-card:nth-child(1)::before { background:var(--accent); }
-  .stat-card:nth-child(2)::before { background:var(--accent2); }
-  .stat-card:nth-child(3)::before { background:var(--success); }
-  .stat-card:nth-child(4)::before { background:var(--info); }
-  .stat-label { font-size:12px; color:var(--muted); margin-bottom:8px; }
-  .stat-value { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; }
-  .stat-icon { position:absolute; top:16px; right:16px; font-size:24px; opacity:.3; }
-
-  /* TABLE */
-  .table-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
-  .table-header { padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); }
-  .table-header h3 { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
-  .search-box {
-    padding:8px 14px; background:var(--surface2); border:1px solid var(--border);
-    border-radius:8px; color:var(--text); font-size:13px; width:220px;
-    font-family:'DM Sans',sans-serif;
-  }
-  .search-box:focus { outline:none; border-color:var(--accent); }
-  table { width:100%; border-collapse:collapse; }
-  th { padding:12px 16px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); border-bottom:1px solid var(--border); font-weight:600; }
-  td { padding:12px 16px; font-size:13px; border-bottom:1px solid rgba(42,42,58,.5); }
-  tr:last-child td { border-bottom:none; }
-  tr:hover td { background:rgba(255,107,53,.04); }
-  .badge {
-    display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500;
-  }
-  .badge-orange { background:rgba(255,107,53,.15); color:var(--accent); }
-  .badge-green { background:rgba(6,214,160,.15); color:var(--success); }
-  .badge-blue { background:rgba(17,138,178,.15); color:var(--info); }
-  .actions { display:flex; gap:6px; }
-
-  /* MODAL */
-  .modal-overlay {
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,.7);
-    z-index:1000; align-items:center; justify-content:center;
-    backdrop-filter:blur(4px);
-  }
-  .modal-overlay.open { display:flex; }
-  .modal {
-    background:var(--surface); border:1px solid var(--border); border-radius:16px;
-    padding:28px; width:500px; max-width:95vw; max-height:90vh; overflow-y:auto;
-    animation:slideUp .2s ease;
-  }
-  @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
-  .modal h2 { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; margin-bottom:20px; }
-  .form-group { margin-bottom:16px; }
-  .form-group label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:500; text-transform:uppercase; letter-spacing:.5px; }
-  .form-group input, .form-group select, .form-group textarea {
-    width:100%; padding:10px 14px; background:var(--surface2); border:1px solid var(--border);
-    border-radius:8px; color:var(--text); font-size:14px; font-family:'DM Sans',sans-serif;
-  }
-  .form-group input:focus, .form-group select:focus { outline:none; border-color:var(--accent); }
-  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
-
-  /* LOADING */
-  .loading { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
-  .spinner { display:inline-block; width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .6s linear infinite; margin-right:8px; vertical-align:middle; }
-  @keyframes spin { to{transform:rotate(360deg)} }
-
-  /* TOAST */
-  .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-  .toast {
-    padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500;
-    animation:toastIn .3s ease; min-width:220px;
-  }
-  @keyframes toastIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
-  .toast-success { background:var(--success); color:#000; }
-  .toast-error { background:var(--danger); color:#fff; }
-
-  .empty { text-align:center; padding:60px 20px; color:var(--muted); }
-  .empty-icon { font-size:48px; margin-bottom:12px; opacity:.3; }
-
-  /* API config */
-  .api-config { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:24px; }
-  .api-config h3 { font-size:13px; color:var(--muted); margin-bottom:12px; }
-  .api-row { display:flex; gap:10px; }
-  .api-input { flex:1; padding:8px 14px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-family:monospace; }
-</style>
+        /* MODAL CUSTOm STYLES FOR SWEETALERT2 FORMS */
+        .swal2-modern-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <div class="logo">🧸 ToyStore<span>.</span><br><small>Hệ thống quản lý</small></div>
-  <nav class="nav">
-    <div class="nav-group">Tổng quan</div>
-    <div class="nav-item active" onclick="showSection('dashboard')"><span class="icon">📊</span> Dashboard</div>
-
-    <div class="nav-group">Sản phẩm</div>
-    <div class="nav-item" onclick="showSection('sanpham')"><span class="icon">🎁</span> Sản phẩm</div>
-    <div class="nav-item" onclick="showSection('loaisp')"><span class="icon">🏷️</span> Loại sản phẩm</div>
-
-    <div class="nav-group">Kinh doanh</div>
-    <div class="nav-item" onclick="showSection('donhang')"><span class="icon">📦</span> Đơn hàng</div>
-    <div class="nav-item" onclick="showSection('khachhang')"><span class="icon">👥</span> Khách hàng</div>
-
-    <div class="nav-group">Kho & Nhập hàng</div>
-    <div class="nav-item" onclick="showSection('tonkho')"><span class="icon">🏭</span> Tồn kho</div>
-    <div class="nav-item" onclick="showSection('nhaphang')"><span class="icon">📋</span> Phiếu nhập hàng</div>
-    <div class="nav-item" onclick="showSection('nhacc')"><span class="icon">🏢</span> Nhà cung cấp</div>
-
-    <div class="nav-group">Nhân sự</div>
-    <div class="nav-item" onclick="showSection('nhanvien')"><span class="icon">👤</span> Nhân viên</div>
-    <div class="nav-item" onclick="showSection('chinhanh')"><span class="icon">🏪</span> Chi nhánh</div>
-  </nav>
-</aside>
-
-<!-- MAIN -->
-<main class="main">
-  <div class="topbar">
-    <div class="page-title" id="pageTitle">Dashboard</div>
-    <div class="topbar-right">
-      <input class="search-box" id="globalSearch" placeholder="🔍 Tìm kiếm..." style="width:180px" oninput="handleSearch(this.value)">
-    </div>
-  </div>
-
-  <div class="content">
-
-    <!-- API CONFIG -->
-    <div class="api-config">
-      <h3>⚙️ CẤU HÌNH API — Nhập URL Render của bạn</h3>
-      <div class="api-row">
-        <input class="api-input" id="apiUrl" placeholder="https://your-app.onrender.com" value="https://your-app.onrender.com">
-        <button class="btn btn-primary" onclick="saveApiUrl()">Lưu & Kết nối</button>
-      </div>
-    </div>
-
-    <!-- DASHBOARD -->
-    <div class="section active" id="section-dashboard">
-      <div class="stats">
-        <div class="stat-card"><div class="stat-label">Sản phẩm</div><div class="stat-value" id="stat-sp">—</div><div class="stat-icon">🎁</div></div>
-        <div class="stat-card"><div class="stat-label">Đơn hàng</div><div class="stat-value" id="stat-dh">—</div><div class="stat-icon">📦</div></div>
-        <div class="stat-card"><div class="stat-label">Khách hàng</div><div class="stat-value" id="stat-kh">—</div><div class="stat-icon">👥</div></div>
-        <div class="stat-card"><div class="stat-label">Nhân viên</div><div class="stat-value" id="stat-nv">—</div><div class="stat-icon">👤</div></div>
-      </div>
-      <div class="table-card">
-        <div class="table-header"><h3>📦 Đơn hàng gần đây</h3></div>
-        <div id="recent-orders"><div class="loading"><span class="spinner"></span>Đang tải...</div></div>
-      </div>
-    </div>
-
-    <!-- SAN PHAM -->
-    <div class="section" id="section-sanpham">
-      <div class="table-card">
-        <div class="table-header">
-          <h3>🎁 Danh sách sản phẩm</h3>
-          <div style="display:flex;gap:10px">
-            <input class="search-box" placeholder="Tìm sản phẩm..." oninput="filterTable('tbl-sp',this.value)">
-            <button class="btn btn-primary" onclick="openModal('modal-sp')">+ Thêm mới</button>
-          </div>
+    <div class="sidebar">
+        <div class="logo-details">
+            <i class='bx bx-cart-alt'></i>
+            <span class="logo_name">StoreAdmin</span>
         </div>
-        <div id="tbl-sp"><div class="loading"><span class="spinner"></span>Đang tải...</div></div>
-      </div>
+        <ul class="nav-list">
+            <li>
+                <a href="#" class="nav-link active" data-target="dashboard-content">
+                    <i class='bx bx-grid-alt'></i>
+                    <span class="links_name">Dashboard Tổng</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link" data-target="loaisp-content">
+                    <i class='bx bx-collection'></i>
+                    <span class="links_name">Loại Sản Phẩm</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link" data-target="sanpham-content">
+                    <i class='bx bx-box'></i>
+                    <span class="links_name">Sản Phẩm</span>
+                </a>
+            </li>
+            </ul>
     </div>
 
-    <!-- LOAI SP -->
-    <div class="section" id="section-loaisp">
-      <div class="table-card">
-        <div class="table-header">
-          <h3>🏷️ Loại sản phẩm</h3>
-          <button class="btn btn-primary" onclick="openModal('modal-loaisp')">+ Thêm mới</button>
+    <section class="home-section">
+        <nav>
+            <div class="dashboard_text">Hệ Thống</div>
+            <div class="user_profile">Top1FreeFileVN Dashboard</div>
+        </nav>
+
+        <div id="dashboard-content" class="content-area active">
+            <div class="header-content">
+                <h1>Tổng Quan</h1>
+            </div>
+            <div class="table-container">
+                <p>Chào mừng đến với hệ thống quản lý. Chọn danh mục bên trái để bắt đầu.</p>
+                <div style="margin-top:20px; color:#666; font-size:13px">Lưu ý: Nếu bạn chạy backend free trên Render, lần gọi API đầu tiên có thể mất ~1 phút để "tỉnh giấc".</div>
+            </div>
         </div>
-        <div id="tbl-loaisp"><div class="loading"><span class="spinner"></span>Đang tải...</div></div>
-      </div>
-    </div>
 
-    <!-- DON HANG -->
-    <div class="section" id="section-donhang">
-      <div class="table-card">
-        <div class="table-header">
-          <h3>📦 Đơn hàng</h3>
-          <div style="display:flex;gap:10px">
-            <input class="search-box" placeholder="Tìm đơn hàng..." oninput="filterTable('tbl-dh',this.value)">
-            <button class="btn btn-primary" onclick="openModal('modal-dh')">+ Thêm mới</button>
-          </div>
+        <div id="loaisp-content" class="content-area">
+            <div class="header-content">
+                <h1>Quản lý Loại Sản Phẩm</h1>
+                <button class="btn-modern btn-modern-primary" onclick="showModalLoaiSP()">
+                    <i class='bx bx-plus-circle'></i> Thêm Loại SP
+                </button>
+            </div>
+            <div class="table-container">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Loại</th>
+                            <th>Tên Loại</th>
+                            <th width="150">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-loaisp">
+                        </tbody>
+                </table>
+                <div id="loading-loaisp" style="display:none; text-align:center; padding: 20px; color:#666;">
+                    <i class='bx bx-loader-alt bx-spin'></i> Đang tải...
+                </div>
+            </div>
         </div>
-        <div id="tbl-dh"><div class="loading"><span class="spinner"></span>Đang tải...</div></div>
-      </div>
-    </div>
 
-    <!-- KHACH HANG -->
-    <div class="section" id="section-khachhang">
-      <div class="table-card">
-        <div class="table-header">
-          <h3>👥 Khách hàng</h3>
-          <div style="display:flex;gap:10px">
-            <input class="search-box" placeholder="Tìm khách hàng..." oninput="filterTable('tbl-kh',this.value)">
-            <button class="btn btn-primary" onclick="openModal('modal-kh')">+ Thêm mới</button>
-          </div>
+        <div id="sanpham-content" class="content-area">
+            <div class="header-content">
+                <h1>Quản lý Sản Phẩm</h1>
+                <button class="btn-modern btn-modern-primary" onclick="showModalSanPham()">
+                    <i class='bx bx-plus-circle'></i> Thêm Sản Phẩm
+                </button>
+            </div>
+            <div class="table-container">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Mã SP</th>
+                            <th>Tên Sản Phẩm</th>
+                            <th>Mô Tả</th>
+                            <th>Đơn Giá</th>
+                            <th>Mã Loại</th>
+                            <th width="150">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-sanpham">
+                        </tbody>
+                </table>
+                <div id="loading-sanpham" style="display:none; text-align:center; padding: 20px; color:#666;">
+                    <i class='bx bx-loader-alt bx-spin'></i> Đang tải...
+                </div>
+            </div>
         </div>
-        <div id="tbl-kh"><div class="loading"><span class="spinner"></span>Đang tải...</div></div>
-      </div>
-    </div>
 
-    <!-- TON KHO -->
-    <div class="section" id="section-tonkho">
-      <div class="table-card">
-        <div class="table-header">
-          <h3>🏭 Tồn kho</h3>
-          <button class="btn btn-primary" onclick="openModal('modal-tonkho')">+ Thêm mới</button>
-        </div>
-        <div id="tbl-tonkho"><div class="loading"><span class="spinner"></span>Đang tải...</div></div>
-      </div>
-    </div>
+    </section>
 
-    <!-- PHIEU NHAP HANG -->
-    <div class="section" id="section-nhaphang">
-      <div class="table-card">
-        <div class="table-header">
-          <h3>📋 Phiếu nhập hàng</h3>
-          <button class="btn btn-primary" onclick="openModal('modal-phieu')">+ Thêm mới</button>
-        </div>
-        <div id="tbl-phieu"><div class="loading"><span class="spinner"></span>Đang tải...</div></div>
-      </div>
-    </div>
+    <script>
+        // ======= 1. CẤU HÌNH API =======
+        // CHỈ CẦN THAY THẾ DÒNG NÀY BẰNG URL BACKEND CỦA BẠN TRÊN RENDER
+        const API_URL = 'https://backendcsdl.onrender.com/api'; 
+        // VD: const API_URL = 'https://your-backend.onrender.com/api';
 
-    <!-- NHA CUNG CAP -->
-    <div class="section" id="section-nhacc">
-      <div class="table-card">
-        <div class="table-header">
-          <h3>🏢 Nhà cung cấp</h3>
-          <button class="btn btn-primary" onclick="openModal('modal-ncc')">+ Thêm mới</button>
-        </div>
-        <div id="tbl-ncc"><div class="loading"><span class="spinner"></span>Đang tải...</div></div>
-      </div>
-    </div>
+        // ======= 2. NAV & TAB LOGIC =======
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.nav-link').forEach(nl => nl.classList.remove('active'));
+                document.querySelectorAll('.content-area').forEach(ca => ca.classList.remove('active'));
+                this.classList.add('active');
+                const targetId = this.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+                // Auto load when tab opens
+                if(targetId === 'loaisp-content') loadLoaiSP();
+                if(targetId === 'sanpham-content') loadSanPham();
+            });
+        });
 
-    <!-- NHAN VIEN -->
-    <div class="section" id="section-nhanvien">
-      <div class="table-card">
-        <div class="table-header">
-          <h3>👤 Nhân viên</h3>
-          <div style="display:flex;gap:10px">
-            <input class="search-box" placeholder="Tìm nhân viên..." oninput="filterTable('tbl-nv',this.value)">
-            <button class="btn btn-primary" onclick="openModal('modal-nv')">+ Thêm mới</button>
-          </div>
-        </div>
-        <div id="tbl-nv"><div class="loading"><span class="spinner"></span>Đang tải...</div></div>
-      </div>
-    </div>
+        // ======= 3. HELPER FUNCTION =======
+        // SweetAlert2 Toast (Thông báo nhỏ ở góc)
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+        });
 
-    <!-- CHI NHANH -->
-    <div class="section" id="section-chinhanh">
-      <div class="table-card">
-        <div class="table-header">
-          <h3>🏪 Chi nhánh</h3>
-          <button class="btn btn-primary" onclick="openModal('modal-cn')">+ Thêm mới</button>
-        </div>
-        <div id="tbl-cn"><div class="loading"><span class="spinner"></span>Đang tải...</div></div>
-      </div>
-    </div>
+        // ======= 4. LOẠI SẢN PHẨM CRUD =======
+        async function loadLoaiSP() {
+            document.getElementById('tbody-loaisp').innerHTML = '';
+            document.getElementById('loading-loaisp').style.display = 'block';
+            try {
+                const res = await axios.get(`${API_URL}/loaisp`);
+                const tbody = document.getElementById('tbody-loaisp');
+                document.getElementById('loading-loaisp').style.display = 'none';
+                if(res.data.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999">Không có dữ liệu</td></tr>';
+                res.data.forEach(item => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item.MaLoai}</td>
+                            <td>${item.TenLoai}</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn-modern-warning btn-modern" onclick="editLoaiSP('${item.MaLoai}', '${item.TenLoai}')"><i class='bx bx-edit-alt'></i></button>
+                                    <button class="btn-modern-danger btn-modern" onclick="deleteLoaiSP('${item.MaLoai}')"><i class='bx bx-trash'></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) { 
+                document.getElementById('loading-loaisp').style.display = 'none';
+                Swal.fire('Lỗi!', 'Không thể kết nối API Loại SP! (Render có thể đang "ngủ")', 'error');
+            }
+        }
 
-  </div>
-</main>
+        async function showModalLoaiSP() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Thêm Loại Sản Phẩm',
+                html:
+                    '<input id="swal-maloai" class="swal2-modern-input" placeholder="Mã Loại (VD: LSP01)">' +
+                    '<input id="swal-tenloai" class="swal2-modern-input" placeholder="Tên Loại Sản Phẩm">',
+                focusConfirm: false,
+                confirmButtonText: 'Lưu lại',
+                showCancelButton: true,
+                cancelButtonText: 'Hủy',
+                preConfirm: () => {
+                    return [
+                        document.getElementById('swal-maloai').value,
+                        document.getElementById('swal-tenloai').value
+                    ]
+                }
+            })
+            if (formValues && formValues[0] && formValues[1]) {
+                try {
+                    await axios.post(`${API_URL}/loaisp`, { MaLoai: formValues[0], TenLoai: formValues[1] });
+                    Toast.fire({ icon: 'success', title: 'Đã thêm mới thành công!' });
+                    loadLoaiSP();
+                } catch (e) { Swal.fire('Lỗi!', e.message, 'error'); }
+            }
+        }
 
-<!-- MODALS -->
+        async function editLoaiSP(id, ten) {
+            const { value: formValues } = await Swal.fire({
+                title: 'Sửa Loại Sản Phẩm',
+                html:
+                    `<input id="swal-maloai" class="swal2-modern-input" value="${id}" readonly style="background:#eee">` +
+                    `<input id="swal-tenloai" class="swal2-modern-input" value="${ten}" placeholder="Tên Loại Sản Phẩm">`,
+                focusConfirm: false,
+                confirmButtonText: 'Cập nhật',
+                showCancelButton: true,
+                cancelButtonText: 'Hủy',
+                preConfirm: () => { return document.getElementById('swal-tenloai').value }
+            })
+            if (formValues) {
+                try {
+                    await axios.put(`${API_URL}/loaisp/${id}`, { TenLoai: formValues });
+                    Toast.fire({ icon: 'success', title: 'Đã cập nhật!' });
+                    loadLoaiSP();
+                } catch (e) { Swal.fire('Lỗi!', e.message, 'error'); }
+            }
+        }
 
-<!-- Modal Sản phẩm -->
-<div class="modal-overlay" id="modal-sp">
-  <div class="modal">
-    <h2 id="modal-sp-title">➕ Thêm sản phẩm</h2>
-    <input type="hidden" id="sp-id-old">
-    <div class="form-grid">
-      <div class="form-group"><label>Mã SP</label><input id="sp-MaSP" placeholder="SP001"></div>
-      <div class="form-group"><label>Tên sản phẩm</label><input id="sp-Ten" placeholder="Xe đồ chơi"></div>
-    </div>
-    <div class="form-group"><label>Mô tả</label><input id="sp-MoTa" placeholder="Mô tả sản phẩm"></div>
-    <div class="form-grid">
-      <div class="form-group"><label>Đơn giá (VNĐ)</label><input id="sp-DonGia" type="number" placeholder="150000"></div>
-      <div class="form-group"><label>Loại sản phẩm</label><select id="sp-MaLoai"><option value="">-- Chọn loại --</option></select></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-sp')">Hủy</button>
-      <button class="btn btn-primary" onclick="saveSanPham()">Lưu</button>
-    </div>
-  </div>
-</div>
+        async function deleteLoaiSP(id) {
+            Swal.fire({
+                title: 'Bạn có chắc chắn muốn xóa?',
+                text: "Dữ liệu liên quan đến Loại này cũng có thể bị ảnh hưởng.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#777',
+                confirmButtonText: 'Đồng ý xóa!',
+                cancelButtonText: 'Hủy'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await axios.delete(`${API_URL}/loaisp/${id}`);
+                        Toast.fire({ icon: 'success', title: 'Đã xóa!' });
+                        loadLoaiSP();
+                    } catch (e) { Swal.fire('Lỗi!', 'Không thể xóa! (Có thể do ràng buộc khóa ngoại)', 'error'); }
+                }
+            })
+        }
 
-<!-- Modal Loại SP -->
-<div class="modal-overlay" id="modal-loaisp">
-  <div class="modal">
-    <h2>➕ Thêm loại sản phẩm</h2>
-    <input type="hidden" id="loai-id-old">
-    <div class="form-group"><label>Mã loại</label><input id="loai-MaLoai" placeholder="L001"></div>
-    <div class="form-group"><label>Tên loại</label><input id="loai-TenLoai" placeholder="Đồ chơi điện tử"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-loaisp')">Hủy</button>
-      <button class="btn btn-primary" onclick="saveLoaiSP()">Lưu</button>
-    </div>
-  </div>
-</div>
+        // ======= 5. SẢN PHẨM CRUD =======
+        async function loadSanPham() {
+            document.getElementById('tbody-sanpham').innerHTML = '';
+            document.getElementById('loading-sanpham').style.display = 'block';
+            try {
+                const res = await axios.get(`${API_URL}/sanpham`);
+                const tbody = document.getElementById('tbody-sanpham');
+                document.getElementById('loading-sanpham').style.display = 'none';
+                if(res.data.length === 0) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#999">Không có dữ liệu</td></tr>';
+                res.data.forEach(item => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item.MaSP}</td>
+                            <td style="font-weight:500">${item.Ten}</td>
+                            <td>${item.MoTa || ''}</td>
+                            <td style="color:#05a">${item.DonGia.toLocaleString('vi-VN')} VND</td>
+                            <td><span style="background:#eee; padding:3px 8px; border-radius:5px; font-size:12px">${item.MaLoai}</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn-modern-warning btn-modern" onclick="editSanPham('${item.MaSP}', '${item.Ten}', '${item.MoTa}', '${item.DonGia}', '${item.MaLoai}')"><i class='bx bx-edit-alt'></i></button>
+                                    <button class="btn-modern-danger btn-modern" onclick="deleteSanPham('${item.MaSP}')"><i class='bx bx-trash'></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) { 
+                document.getElementById('loading-sanpham').style.display = 'none';
+                Swal.fire('Lỗi!', 'Không thể kết nối API Sản Phẩm!', 'error'); 
+            }
+        }
 
-<!-- Modal Khách hàng -->
-<div class="modal-overlay" id="modal-kh">
-  <div class="modal">
-    <h2 id="modal-kh-title">➕ Thêm khách hàng</h2>
-    <input type="hidden" id="kh-id-old">
-    <div class="form-grid">
-      <div class="form-group"><label>Mã KH</label><input id="kh-MaKH" placeholder="KH001"></div>
-      <div class="form-group"><label>Tên KH</label><input id="kh-Ten" placeholder="Nguyễn Văn A"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label>Email</label><input id="kh-Email" placeholder="email@gmail.com"></div>
-      <div class="form-group"><label>Thẻ tích điểm</label><input id="kh-TheTichDiem" placeholder="GOLD"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label>Số nhà</label><input id="kh-SoNha" placeholder="123"></div>
-      <div class="form-group"><label>Phường</label><input id="kh-Phuong" placeholder="Phường 1"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label>Quận</label><input id="kh-Quan" placeholder="Quận 1"></div>
-      <div class="form-group"><label>Thành phố</label><input id="kh-ThanhPho" placeholder="TP.HCM"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-kh')">Hủy</button>
-      <button class="btn btn-primary" onclick="saveKhachHang()">Lưu</button>
-    </div>
-  </div>
-</div>
+        async function showModalSanPham() {
+            const { value: f } = await Swal.fire({
+                title: 'Thêm Sản Phẩm Mới',
+                html:
+                    '<input id="s-masp" class="swal2-modern-input" placeholder="Mã SP">' +
+                    '<input id="s-ten" class="swal2-modern-input" placeholder="Tên SP">' +
+                    '<input id="s-mota" class="swal2-modern-input" placeholder="Mô tả">' +
+                    '<input id="s-dongia" type="number" class="swal2-modern-input" placeholder="Đơn giá">' +
+                    '<input id="s-maloai" class="swal2-modern-input" placeholder="Mã Loại (Khóa ngoại)">',
+                focusConfirm: false,
+                confirmButtonText: 'Lưu', showCancelButton: true, cancelButtonText: 'Hủy',
+                preConfirm: () => { return { MaSP: document.getElementById('s-masp').value, Ten: document.getElementById('s-ten').value, MoTa: document.getElementById('s-mota').value, DonGia: document.getElementById('s-dongia').value, MaLoai: document.getElementById('s-maloai').value }}
+            })
+            if (f && f.MaSP && f.Ten && f.DonGia && f.MaLoai) {
+                try {
+                    await axios.post(`${API_URL}/sanpham`, f);
+                    Toast.fire({ icon: 'success', title: 'Thêm SP thành công!' }); loadSanPham();
+                } catch (e) { Swal.fire('Lỗi!', e.message, 'error'); }
+            }
+        }
 
-<!-- Modal Đơn hàng -->
-<div class="modal-overlay" id="modal-dh">
-  <div class="modal">
-    <h2>➕ Thêm đơn hàng</h2>
-    <input type="hidden" id="dh-id-old">
-    <div class="form-grid">
-      <div class="form-group"><label>Mã đơn hàng</label><input id="dh-MaDonHang" placeholder="DH001"></div>
-      <div class="form-group"><label>Ngày mua</label><input id="dh-NgayMua" type="date"></div>
-    </div>
-    <div class="form-group"><label>Phương thức thanh toán</label>
-      <select id="dh-PhuongThucThanhToan">
-        <option>Tiền mặt</option><option>Chuyển khoản</option><option>Thẻ tín dụng</option><option>Ví điện tử</option>
-      </select>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label>Khách hàng</label><select id="dh-MaKH"><option value="">-- Chọn KH --</option></select></div>
-      <div class="form-group"><label>Nhân viên</label><select id="dh-MaNV"><option value="">-- Chọn NV --</option></select></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-dh')">Hủy</button>
-      <button class="btn btn-primary" onclick="saveDonHang()">Lưu</button>
-    </div>
-  </div>
-</div>
+        async function editSanPham(MaSP, Ten, MoTa, DonGia, MaLoai) {
+            const { value: f } = await Swal.fire({
+                title: 'Sửa Sản Phẩm',
+                html:
+                    `<input id="s-masp" class="swal2-modern-input" value="${MaSP}" readonly style="background:#eee">` +
+                    `<input id="s-ten" class="swal2-modern-input" value="${Ten}" placeholder="Tên SP">` +
+                    `<input id="s-mota" class="swal2-modern-input" value="${MoTa !== 'null' ? MoTa : ''}" placeholder="Mô tả">` +
+                    `<input id="s-dongia" type="number" class="swal2-modern-input" value="${DonGia}" placeholder="Đơn giá">` +
+                    `<input id="s-maloai" class="swal2-modern-input" value="${MaLoai}" placeholder="Mã Loại (Khóa ngoại)">`,
+                focusConfirm: false, confirmButtonText: 'Cập nhật', showCancelButton: true, cancelButtonText: 'Hủy',
+                preConfirm: () => { return { Ten: document.getElementById('s-ten').value, MoTa: document.getElementById('s-mota').value, DonGia: document.getElementById('s-dongia').value, MaLoai: document.getElementById('s-maloai').value }}
+            })
+            if (f) {
+                try {
+                    await axios.put(`${API_URL}/sanpham/${MaSP}`, f);
+                    Toast.fire({ icon: 'success', title: 'Cập nhật SP thành công!' }); loadSanPham();
+                } catch (e) { Swal.fire('Lỗi!', e.message, 'error'); }
+            }
+        }
 
-<!-- Modal Nhà cung cấp -->
-<div class="modal-overlay" id="modal-ncc">
-  <div class="modal">
-    <h2>➕ Thêm nhà cung cấp</h2>
-    <input type="hidden" id="ncc-id-old">
-    <div class="form-group"><label>Mã đơn vị</label><input id="ncc-MaDV" placeholder="NCC001"></div>
-    <div class="form-group"><label>Tên nhà cung cấp</label><input id="ncc-Ten" placeholder="Công ty ABC"></div>
-    <div class="form-group"><label>Địa chỉ</label><input id="ncc-DiaChi" placeholder="123 Đường ABC, Q1, TP.HCM"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-ncc')">Hủy</button>
-      <button class="btn btn-primary" onclick="saveNCC()">Lưu</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Nhân viên -->
-<div class="modal-overlay" id="modal-nv">
-  <div class="modal">
-    <h2>➕ Thêm nhân viên</h2>
-    <input type="hidden" id="nv-id-old">
-    <div class="form-grid">
-      <div class="form-group"><label>Mã NV</label><input id="nv-MaNV" placeholder="NV001"></div>
-      <div class="form-group"><label>Họ và tên</label><input id="nv-HoVaTen" placeholder="Nguyễn Văn A"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label>Email</label><input id="nv-Email" placeholder="nv@toystore.com"></div>
-      <div class="form-group"><label>Số điện thoại</label><input id="nv-SoDienThoai" placeholder="0901234567"></div>
-    </div>
-    <div class="form-group"><label>Địa chỉ</label><input id="nv-DiaChi" placeholder="123 Đường ABC"></div>
-    <div class="form-grid">
-      <div class="form-group"><label>Giờ làm/ngày</label><input id="nv-ThoiGianLamViecTrongNgay" type="number" placeholder="8"></div>
-      <div class="form-group"><label>Chi nhánh</label><select id="nv-MaCN"><option value="">-- Chọn CN --</option></select></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label>Vị trí</label><select id="nv-MaViTri"><option value="">-- Chọn vị trí --</option></select></div>
-      <div class="form-group"><label>Người quản lý</label><select id="nv-MaNguoiQuanLy"><option value="">-- Chọn NV --</option></select></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-nv')">Hủy</button>
-      <button class="btn btn-primary" onclick="saveNhanVien()">Lưu</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Chi nhánh -->
-<div class="modal-overlay" id="modal-cn">
-  <div class="modal">
-    <h2>➕ Thêm chi nhánh</h2>
-    <input type="hidden" id="cn-id-old">
-    <div class="form-group"><label>Mã chi nhánh</label><input id="cn-MaCN" placeholder="CN001"></div>
-    <div class="form-group"><label>Tên chi nhánh</label><input id="cn-Ten" placeholder="Chi nhánh Quận 1"></div>
-    <div class="form-group"><label>Địa chỉ</label><input id="cn-DiaChi" placeholder="123 Đường ABC, Q1, TP.HCM"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-cn')">Hủy</button>
-      <button class="btn btn-primary" onclick="saveChiNhanh()">Lưu</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Tồn kho -->
-<div class="modal-overlay" id="modal-tonkho">
-  <div class="modal">
-    <h2>➕ Thêm tồn kho</h2>
-    <div class="form-grid">
-      <div class="form-group"><label>Sản phẩm</label><select id="tk-MaSP"><option value="">-- Chọn SP --</option></select></div>
-      <div class="form-group"><label>Mã kho</label><input id="tk-MaKho" placeholder="KHO001"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label>Số lượng</label><input id="tk-SoLuong" type="number" placeholder="100"></div>
-      <div class="form-group"><label>Vị trí hàng</label><input id="tk-ViTriHang" placeholder="A1"></div>
-    </div>
-    <div class="form-group"><label>Vị trí khu (số)</label><input id="tk-ViTriKhu" type="number" placeholder="1"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-tonkho')">Hủy</button>
-      <button class="btn btn-primary" onclick="saveTonKho()">Lưu</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Phiếu nhập -->
-<div class="modal-overlay" id="modal-phieu">
-  <div class="modal">
-    <h2>➕ Thêm phiếu nhập hàng</h2>
-    <div class="form-group"><label>Mã phiếu</label><input id="phieu-MaPhieu" placeholder="PN001"></div>
-    <div class="form-group"><label>Ngày nhập</label><input id="phieu-NgayNhap" type="date"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-phieu')">Hủy</button>
-      <button class="btn btn-primary" onclick="savePhieu()">Lưu</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast-container" id="toastContainer"></div>
-
-<script>
-let API = localStorage.getItem('apiUrl') || 'https://your-app.onrender.com';
-document.getElementById('apiUrl').value = API;
-
-function saveApiUrl() {
-  API = document.getElementById('apiUrl').value.trim().replace(/\/$/, '');
-  localStorage.setItem('apiUrl', API);
-  toast('Đã lưu URL API!', 'success');
-  loadDashboard();
-}
-
-// ====== NAVIGATION ======
-function showSection(name) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('section-' + name).classList.add('active');
-  event.currentTarget.classList.add('active');
-  const titles = {
-    dashboard:'Dashboard', sanpham:'Sản phẩm', loaisp:'Loại sản phẩm',
-    donhang:'Đơn hàng', khachhang:'Khách hàng', tonkho:'Tồn kho',
-    nhaphang:'Phiếu nhập hàng', nhacc:'Nhà cung cấp', nhanvien:'Nhân viên', chinhanh:'Chi nhánh'
-  };
-  document.getElementById('pageTitle').textContent = titles[name] || name;
-  const loaders = {
-    sanpham: loadSanPham, loaisp: loadLoaiSP, donhang: loadDonHang,
-    khachhang: loadKhachHang, tonkho: loadTonKho, nhaphang: loadPhieu,
-    nhacc: loadNCC, nhanvien: loadNhanVien, chinhanh: loadChiNhanh
-  };
-  if (loaders[name]) loaders[name]();
-}
-
-// ====== API HELPER ======
-async function api(path, method='GET', body=null) {
-  const opts = { method, headers:{'Content-Type':'application/json'} };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(API + path, opts);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
-// ====== TOAST ======
-function toast(msg, type='success') {
-  const t = document.createElement('div');
-  t.className = `toast toast-${type}`;
-  t.textContent = (type==='success'?'✅ ':'❌ ') + msg;
-  document.getElementById('toastContainer').appendChild(t);
-  setTimeout(() => t.remove(), 3000);
-}
-
-// ====== MODAL ======
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
-});
-
-// ====== FILTER TABLE ======
-function filterTable(tbId, val) {
-  const rows = document.querySelectorAll(`#${tbId} tbody tr`);
-  rows.forEach(r => {
-    r.style.display = r.textContent.toLowerCase().includes(val.toLowerCase()) ? '' : 'none';
-  });
-}
-
-// ====== DASHBOARD ======
-async function loadDashboard() {
-  try {
-    const [sp, dh, kh, nv] = await Promise.allSettled([
-      api('/api/sanpham'), api('/api/donhang'), api('/api/khachhang'), api('/api/nhanvien')
-    ]);
-    document.getElementById('stat-sp').textContent = sp.status==='fulfilled' ? sp.value.length : '—';
-    document.getElementById('stat-dh').textContent = dh.status==='fulfilled' ? dh.value.length : '—';
-    document.getElementById('stat-kh').textContent = kh.status==='fulfilled' ? kh.value.length : '—';
-    document.getElementById('stat-nv').textContent = nv.status==='fulfilled' ? nv.value.length : '—';
-
-    if (dh.status==='fulfilled') {
-      const recent = dh.value.slice(-5).reverse();
-      document.getElementById('recent-orders').innerHTML = `
-        <table><thead><tr><th>Mã đơn</th><th>Ngày mua</th><th>Thanh toán</th><th>Khách hàng</th></tr></thead>
-        <tbody>${recent.map(d=>`<tr>
-          <td><span class="badge badge-orange">${d.MaDonHang}</span></td>
-          <td>${d.NgayMua?.split('T')[0]||d.NgayMua}</td>
-          <td>${d.PhuongThucThanhToan}</td>
-          <td>${d.MaKH}</td>
-        </tr>`).join('')}</tbody></table>`;
-    }
-  } catch(e) { console.log(e); }
-}
-
-// ====== SAN PHAM ======
-async function loadSanPham() {
-  try {
-    const data = await api('/api/sanpham');
-    document.getElementById('tbl-sp').innerHTML = `
-      <table><thead><tr><th>Mã SP</th><th>Tên</th><th>Mô tả</th><th>Đơn giá</th><th>Loại</th><th>Thao tác</th></tr></thead>
-      <tbody>${data.map(d=>`<tr>
-        <td><span class="badge badge-orange">${d.MaSP}</span></td>
-        <td>${d.Ten}</td><td>${d.MoTa}</td>
-        <td>${Number(d.DonGia).toLocaleString('vi-VN')}đ</td>
-        <td><span class="badge badge-blue">${d.MaLoai}</span></td>
-        <td><div class="actions">
-          <button class="btn btn-ghost btn-sm" onclick='editSanPham(${JSON.stringify(d)})'>✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteSanPham('${d.MaSP}')">🗑️</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-  } catch(e) { document.getElementById('tbl-sp').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Không thể tải dữ liệu</div>`; }
-}
-
-function editSanPham(d) {
-  document.getElementById('modal-sp-title').textContent = '✏️ Sửa sản phẩm';
-  document.getElementById('sp-id-old').value = d.MaSP;
-  document.getElementById('sp-MaSP').value = d.MaSP;
-  document.getElementById('sp-Ten').value = d.Ten;
-  document.getElementById('sp-MoTa').value = d.MoTa;
-  document.getElementById('sp-DonGia').value = d.DonGia;
-  document.getElementById('sp-MaLoai').value = d.MaLoai;
-  openModal('modal-sp');
-}
-
-async function saveSanPham() {
-  const oldId = document.getElementById('sp-id-old').value;
-  const body = {
-    MaSP: document.getElementById('sp-MaSP').value,
-    Ten: document.getElementById('sp-Ten').value,
-    MoTa: document.getElementById('sp-MoTa').value,
-    DonGia: document.getElementById('sp-DonGia').value,
-    MaLoai: document.getElementById('sp-MaLoai').value
-  };
-  try {
-    if (oldId) await api(`/api/sanpham/${oldId}`, 'PUT', body);
-    else await api('/api/sanpham', 'POST', body);
-    toast(oldId ? 'Cập nhật thành công!' : 'Thêm thành công!');
-    closeModal('modal-sp');
-    document.getElementById('sp-id-old').value = '';
-    document.getElementById('modal-sp-title').textContent = '➕ Thêm sản phẩm';
-    loadSanPham();
-  } catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-async function deleteSanPham(id) {
-  if (!confirm('Xóa sản phẩm ' + id + '?')) return;
-  try { await api(`/api/sanpham/${id}`, 'DELETE'); toast('Đã xóa!'); loadSanPham(); }
-  catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-// ====== LOAI SP ======
-async function loadLoaiSP() {
-  try {
-    const data = await api('/api/loaisp');
-    document.getElementById('tbl-loaisp').innerHTML = `
-      <table><thead><tr><th>Mã loại</th><th>Tên loại</th><th>Thao tác</th></tr></thead>
-      <tbody>${data.map(d=>`<tr>
-        <td><span class="badge badge-blue">${d.MaLoai}</span></td>
-        <td>${d.TenLoai}</td>
-        <td><div class="actions">
-          <button class="btn btn-ghost btn-sm" onclick='editLoaiSP(${JSON.stringify(d)})'>✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteLoaiSP('${d.MaLoai}')">🗑️</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-    // populate select
-    const sel = document.getElementById('sp-MaLoai');
-    sel.innerHTML = '<option value="">-- Chọn loại --</option>' + data.map(d=>`<option value="${d.MaLoai}">${d.TenLoai}</option>`).join('');
-  } catch(e) { document.getElementById('tbl-loaisp').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Không thể tải dữ liệu</div>`; }
-}
-
-function editLoaiSP(d) {
-  document.getElementById('loai-id-old').value = d.MaLoai;
-  document.getElementById('loai-MaLoai').value = d.MaLoai;
-  document.getElementById('loai-TenLoai').value = d.TenLoai;
-  openModal('modal-loaisp');
-}
-
-async function saveLoaiSP() {
-  const oldId = document.getElementById('loai-id-old').value;
-  const body = { MaLoai: document.getElementById('loai-MaLoai').value, TenLoai: document.getElementById('loai-TenLoai').value };
-  try {
-    if (oldId) await api(`/api/loaisp/${oldId}`, 'PUT', body);
-    else await api('/api/loaisp', 'POST', body);
-    toast(oldId ? 'Cập nhật thành công!' : 'Thêm thành công!');
-    closeModal('modal-loaisp');
-    document.getElementById('loai-id-old').value = '';
-    loadLoaiSP();
-  } catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-async function deleteLoaiSP(id) {
-  if (!confirm('Xóa loại ' + id + '?')) return;
-  try { await api(`/api/loaisp/${id}`, 'DELETE'); toast('Đã xóa!'); loadLoaiSP(); }
-  catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-// ====== KHACH HANG ======
-async function loadKhachHang() {
-  try {
-    const data = await api('/api/khachhang');
-    document.getElementById('tbl-kh').innerHTML = `
-      <table><thead><tr><th>Mã KH</th><th>Tên</th><th>Email</th><th>Thẻ</th><th>Thành phố</th><th>Thao tác</th></tr></thead>
-      <tbody>${data.map(d=>`<tr>
-        <td><span class="badge badge-orange">${d.MaKH}</span></td>
-        <td>${d.Ten}</td><td>${d.Email}</td>
-        <td><span class="badge badge-green">${d.TheTichDiem}</span></td>
-        <td>${d.ThanhPho}</td>
-        <td><div class="actions">
-          <button class="btn btn-ghost btn-sm" onclick='editKhachHang(${JSON.stringify(d)})'>✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteKhachHang('${d.MaKH}')">🗑️</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-    const sel = document.getElementById('dh-MaKH');
-    sel.innerHTML = '<option value="">-- Chọn KH --</option>' + data.map(d=>`<option value="${d.MaKH}">${d.Ten}</option>`).join('');
-  } catch(e) { document.getElementById('tbl-kh').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Không thể tải dữ liệu</div>`; }
-}
-
-function editKhachHang(d) {
-  document.getElementById('modal-kh-title').textContent = '✏️ Sửa khách hàng';
-  document.getElementById('kh-id-old').value = d.MaKH;
-  ['MaKH','Ten','Email','TheTichDiem','SoNha','Phuong','Quan','ThanhPho'].forEach(k => {
-    document.getElementById('kh-'+k).value = d[k];
-  });
-  openModal('modal-kh');
-}
-
-async function saveKhachHang() {
-  const oldId = document.getElementById('kh-id-old').value;
-  const body = {};
-  ['MaKH','Ten','Email','TheTichDiem','SoNha','Phuong','Quan','ThanhPho'].forEach(k => {
-    body[k] = document.getElementById('kh-'+k).value;
-  });
-  try {
-    if (oldId) await api(`/api/khachhang/${oldId}`, 'PUT', body);
-    else await api('/api/khachhang', 'POST', body);
-    toast(oldId ? 'Cập nhật thành công!' : 'Thêm thành công!');
-    closeModal('modal-kh');
-    document.getElementById('kh-id-old').value = '';
-    document.getElementById('modal-kh-title').textContent = '➕ Thêm khách hàng';
-    loadKhachHang();
-  } catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-async function deleteKhachHang(id) {
-  if (!confirm('Xóa khách hàng ' + id + '?')) return;
-  try { await api(`/api/khachhang/${id}`, 'DELETE'); toast('Đã xóa!'); loadKhachHang(); }
-  catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-// ====== DON HANG ======
-async function loadDonHang() {
-  try {
-    const data = await api('/api/donhang');
-    document.getElementById('tbl-dh').innerHTML = `
-      <table><thead><tr><th>Mã đơn</th><th>Ngày mua</th><th>Thanh toán</th><th>Khách hàng</th><th>Nhân viên</th><th>Thao tác</th></tr></thead>
-      <tbody>${data.map(d=>`<tr>
-        <td><span class="badge badge-orange">${d.MaDonHang}</span></td>
-        <td>${d.NgayMua?.split('T')[0]||d.NgayMua}</td>
-        <td><span class="badge badge-green">${d.PhuongThucThanhToan}</span></td>
-        <td>${d.MaKH}</td><td>${d.MaNV}</td>
-        <td><div class="actions">
-          <button class="btn btn-danger btn-sm" onclick="deleteDonHang('${d.MaDonHang}')">🗑️</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-  } catch(e) { document.getElementById('tbl-dh').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Không thể tải dữ liệu</div>`; }
-}
-
-async function saveDonHang() {
-  const body = {
-    MaDonHang: document.getElementById('dh-MaDonHang').value,
-    NgayMua: document.getElementById('dh-NgayMua').value,
-    PhuongThucThanhToan: document.getElementById('dh-PhuongThucThanhToan').value,
-    MaKH: document.getElementById('dh-MaKH').value,
-    MaNV: document.getElementById('dh-MaNV').value
-  };
-  try {
-    await api('/api/donhang', 'POST', body);
-    toast('Thêm đơn hàng thành công!');
-    closeModal('modal-dh');
-    loadDonHang();
-  } catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-async function deleteDonHang(id) {
-  if (!confirm('Xóa đơn hàng ' + id + '?')) return;
-  try { await api(`/api/donhang/${id}`, 'DELETE'); toast('Đã xóa!'); loadDonHang(); }
-  catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-// ====== NHA CUNG CAP ======
-async function loadNCC() {
-  try {
-    const data = await api('/api/nhacc');
-    document.getElementById('tbl-ncc').innerHTML = `
-      <table><thead><tr><th>Mã ĐV</th><th>Tên</th><th>Địa chỉ</th><th>Thao tác</th></tr></thead>
-      <tbody>${data.map(d=>`<tr>
-        <td><span class="badge badge-blue">${d.MaDV}</span></td>
-        <td>${d.Ten}</td><td>${d.DiaChi}</td>
-        <td><div class="actions">
-          <button class="btn btn-ghost btn-sm" onclick='editNCC(${JSON.stringify(d)})'>✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteNCC('${d.MaDV}')">🗑️</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-  } catch(e) { document.getElementById('tbl-ncc').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Không thể tải dữ liệu</div>`; }
-}
-
-function editNCC(d) {
-  document.getElementById('ncc-id-old').value = d.MaDV;
-  document.getElementById('ncc-MaDV').value = d.MaDV;
-  document.getElementById('ncc-Ten').value = d.Ten;
-  document.getElementById('ncc-DiaChi').value = d.DiaChi;
-  openModal('modal-ncc');
-}
-
-async function saveNCC() {
-  const oldId = document.getElementById('ncc-id-old').value;
-  const body = { MaDV: document.getElementById('ncc-MaDV').value, Ten: document.getElementById('ncc-Ten').value, DiaChi: document.getElementById('ncc-DiaChi').value };
-  try {
-    if (oldId) await api(`/api/nhacc/${oldId}`, 'PUT', body);
-    else await api('/api/nhacc', 'POST', body);
-    toast('Lưu thành công!'); closeModal('modal-ncc');
-    document.getElementById('ncc-id-old').value = '';
-    loadNCC();
-  } catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-async function deleteNCC(id) {
-  if (!confirm('Xóa nhà cung cấp ' + id + '?')) return;
-  try { await api(`/api/nhacc/${id}`, 'DELETE'); toast('Đã xóa!'); loadNCC(); }
-  catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-// ====== CHI NHANH ======
-async function loadChiNhanh() {
-  try {
-    const data = await api('/api/chinhanh');
-    document.getElementById('tbl-cn').innerHTML = `
-      <table><thead><tr><th>Mã CN</th><th>Tên</th><th>Địa chỉ</th><th>Thao tác</th></tr></thead>
-      <tbody>${data.map(d=>`<tr>
-        <td><span class="badge badge-blue">${d.MaCN}</span></td>
-        <td>${d.Ten}</td><td>${d.DiaChi}</td>
-        <td><div class="actions">
-          <button class="btn btn-ghost btn-sm" onclick='editCN(${JSON.stringify(d)})'>✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCN('${d.MaCN}')">🗑️</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-    const sel = document.getElementById('nv-MaCN');
-    sel.innerHTML = '<option value="">-- Chọn CN --</option>' + data.map(d=>`<option value="${d.MaCN}">${d.Ten}</option>`).join('');
-  } catch(e) { document.getElementById('tbl-cn').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Không thể tải dữ liệu</div>`; }
-}
-
-function editCN(d) {
-  document.getElementById('cn-id-old').value = d.MaCN;
-  document.getElementById('cn-MaCN').value = d.MaCN;
-  document.getElementById('cn-Ten').value = d.Ten;
-  document.getElementById('cn-DiaChi').value = d.DiaChi;
-  openModal('modal-cn');
-}
-
-async function saveChiNhanh() {
-  const oldId = document.getElementById('cn-id-old').value;
-  const body = { MaCN: document.getElementById('cn-MaCN').value, Ten: document.getElementById('cn-Ten').value, DiaChi: document.getElementById('cn-DiaChi').value };
-  try {
-    if (oldId) await api(`/api/chinhanh/${oldId}`, 'PUT', body);
-    else await api('/api/chinhanh', 'POST', body);
-    toast('Lưu thành công!'); closeModal('modal-cn');
-    document.getElementById('cn-id-old').value = '';
-    loadChiNhanh();
-  } catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-async function deleteCN(id) {
-  if (!confirm('Xóa chi nhánh ' + id + '?')) return;
-  try { await api(`/api/chinhanh/${id}`, 'DELETE'); toast('Đã xóa!'); loadChiNhanh(); }
-  catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-// ====== NHAN VIEN ======
-async function loadNhanVien() {
-  try {
-    const data = await api('/api/nhanvien');
-    document.getElementById('tbl-nv').innerHTML = `
-      <table><thead><tr><th>Mã NV</th><th>Họ và tên</th><th>Email</th><th>SĐT</th><th>Chi nhánh</th><th>Thao tác</th></tr></thead>
-      <tbody>${data.map(d=>`<tr>
-        <td><span class="badge badge-orange">${d.MaNV}</span></td>
-        <td>${d.HoVaTen}</td><td>${d.Email}</td><td>${d.SoDienThoai}</td>
-        <td><span class="badge badge-blue">${d.MaCN}</span></td>
-        <td><div class="actions">
-          <button class="btn btn-ghost btn-sm" onclick='editNhanVien(${JSON.stringify(d)})'>✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteNhanVien('${d.MaNV}')">🗑️</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-    const sel = document.getElementById('dh-MaNV');
-    sel.innerHTML = '<option value="">-- Chọn NV --</option>' + data.map(d=>`<option value="${d.MaNV}">${d.HoVaTen}</option>`).join('');
-    const sel2 = document.getElementById('nv-MaNguoiQuanLy');
-    sel2.innerHTML = '<option value="">-- Chọn NV --</option>' + data.map(d=>`<option value="${d.MaNV}">${d.HoVaTen}</option>`).join('');
-  } catch(e) { document.getElementById('tbl-nv').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Không thể tải dữ liệu</div>`; }
-}
-
-function editNhanVien(d) {
-  document.getElementById('nv-id-old').value = d.MaNV;
-  ['MaNV','HoVaTen','Email','DiaChi','SoDienThoai','ThoiGianLamViecTrongNgay','MaCN','MaViTri','MaNguoiQuanLy'].forEach(k => {
-    const el = document.getElementById('nv-'+k);
-    if (el) el.value = d[k];
-  });
-  openModal('modal-nv');
-}
-
-async function saveNhanVien() {
-  const oldId = document.getElementById('nv-id-old').value;
-  const body = {};
-  ['MaNV','HoVaTen','Email','DiaChi','SoDienThoai','ThoiGianLamViecTrongNgay','MaCN','MaViTri','MaNguoiQuanLy'].forEach(k => {
-    body[k] = document.getElementById('nv-'+k)?.value;
-  });
-  try {
-    if (oldId) await api(`/api/nhanvien/${oldId}`, 'PUT', body);
-    else await api('/api/nhanvien', 'POST', body);
-    toast('Lưu thành công!'); closeModal('modal-nv');
-    document.getElementById('nv-id-old').value = '';
-    loadNhanVien();
-  } catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-async function deleteNhanVien(id) {
-  if (!confirm('Xóa nhân viên ' + id + '?')) return;
-  try { await api(`/api/nhanvien/${id}`, 'DELETE'); toast('Đã xóa!'); loadNhanVien(); }
-  catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-// ====== TON KHO ======
-async function loadTonKho() {
-  try {
-    const data = await api('/api/tonkho');
-    document.getElementById('tbl-tonkho').innerHTML = `
-      <table><thead><tr><th>Mã SP</th><th>Mã kho</th><th>Số lượng</th><th>Vị trí hàng</th><th>Vị trí khu</th><th>Thao tác</th></tr></thead>
-      <tbody>${data.map(d=>`<tr>
-        <td><span class="badge badge-orange">${d.MaSP}</span></td>
-        <td>${d.MaKho}</td>
-        <td><span class="badge badge-green">${d.SoLuong}</span></td>
-        <td>${d.ViTriHang}</td><td>${d.ViTriKhu}</td>
-        <td><div class="actions">
-          <button class="btn btn-danger btn-sm" onclick="deleteTonKho('${d.MaSP}','${d.MaKho}')">🗑️</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-    const sp = await api('/api/sanpham');
-    document.getElementById('tk-MaSP').innerHTML = '<option value="">-- Chọn SP --</option>' + sp.map(d=>`<option value="${d.MaSP}">${d.Ten}</option>`).join('');
-  } catch(e) { document.getElementById('tbl-tonkho').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Không thể tải dữ liệu</div>`; }
-}
-
-async function saveTonKho() {
-  const body = {
-    MaSP: document.getElementById('tk-MaSP').value,
-    MaKho: document.getElementById('tk-MaKho').value,
-    SoLuong: document.getElementById('tk-SoLuong').value,
-    ViTriHang: document.getElementById('tk-ViTriHang').value,
-    ViTriKhu: document.getElementById('tk-ViTriKhu').value
-  };
-  try {
-    await api('/api/tonkho', 'POST', body);
-    toast('Thêm tồn kho thành công!'); closeModal('modal-tonkho'); loadTonKho();
-  } catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-async function deleteTonKho(maSP, maKho) {
-  if (!confirm('Xóa tồn kho này?')) return;
-  try { await api(`/api/tonkho/${maSP}/${maKho}`, 'DELETE'); toast('Đã xóa!'); loadTonKho(); }
-  catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-// ====== PHIEU NHAP ======
-async function loadPhieu() {
-  try {
-    const data = await api('/api/phieunhap');
-    document.getElementById('tbl-phieu').innerHTML = `
-      <table><thead><tr><th>Mã phiếu</th><th>Ngày nhập</th><th>Thao tác</th></tr></thead>
-      <tbody>${data.map(d=>`<tr>
-        <td><span class="badge badge-blue">${d.MaPhieu}</span></td>
-        <td>${d.NgayNhap?.split('T')[0]||d.NgayNhap}</td>
-        <td><div class="actions">
-          <button class="btn btn-danger btn-sm" onclick="deletePhieu('${d.MaPhieu}')">🗑️</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-  } catch(e) { document.getElementById('tbl-phieu').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Không thể tải dữ liệu</div>`; }
-}
-
-async function savePhieu() {
-  const body = { MaPhieu: document.getElementById('phieu-MaPhieu').value, NgayNhap: document.getElementById('phieu-NgayNhap').value };
-  try {
-    await api('/api/phieunhap', 'POST', body);
-    toast('Thêm phiếu thành công!'); closeModal('modal-phieu'); loadPhieu();
-  } catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-async function deletePhieu(id) {
-  if (!confirm('Xóa phiếu ' + id + '?')) return;
-  try { await api(`/api/phieunhap/${id}`, 'DELETE'); toast('Đã xóa!'); loadPhieu(); }
-  catch(e) { toast('Lỗi: ' + e.message, 'error'); }
-}
-
-function handleSearch(val) {
-  const active = document.querySelector('.section.active').id.replace('section-','');
-  const map = { sanpham:'tbl-sp', donhang:'tbl-dh', khachhang:'tbl-kh', nhanvien:'tbl-nv' };
-  if (map[active]) filterTable(map[active], val);
-}
-
-// INIT
-loadDashboard();
-</script>
+        async function deleteSanPham(id) {
+            Swal.fire({
+                title: 'Xóa sản phẩm này?', icon: 'warning',
+                showCancelButton: true, confirmButtonColor: '#e74c3c', cancelButtonColor: '#777', confirmButtonText: 'Xóa!', cancelButtonText: 'Hủy'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await axios.delete(`${API_URL}/sanpham/${id}`);
+                        Toast.fire({ icon: 'success', title: 'Đã xóa!' }); loadSanPham();
+                    } catch (e) { Swal.fire('Lỗi!', e.message, 'error'); }
+                }
+            })
+        }
+    </script>
 </body>
 </html>
