@@ -54,211 +54,219 @@
         </div>
     </div>
 
-    <script>
-        const API_URL = 'https://backendcsdl.onrender.com/api'; // Đổi thành localhost:3000/api nếu test offline
-        
-        // ==========================================
-        // CẤU HÌNH SCHEMA (CHÌA KHÓA CỦA SỰ THẦN THÁNH)
-        // ==========================================
-        const schemaConfig = {
-            loaisp: {
-                title: 'Loại Sản Phẩm', endpoint: '/loaisp', primaryKey: 'MaLoai', icon: 'bx-category',
-                fields: [
-                    { key: 'MaLoai', label: 'Mã Loại', type: 'text' },
-                    { key: 'TenLoai', label: 'Tên Loại', type: 'text' }
-                ]
-            },
-            sanpham: {
-                title: 'Sản Phẩm', endpoint: '/sanpham', primaryKey: 'MaSP', icon: 'bx-box',
-                fields: [
-                    { key: 'MaSP', label: 'Mã Sản Phẩm', type: 'text' },
-                    { key: 'Ten', label: 'Tên Sản Phẩm', type: 'text' },
-                    { key: 'MoTa', label: 'Mô Tả', type: 'text' },
-                    { key: 'DonGia', label: 'Đơn Giá', type: 'number' },
-                    { key: 'MaLoai', label: 'Mã Loại (Khóa ngoại)', type: 'text' }
-                ]
-            },
-            donvicungcap: {
-                title: 'Đơn Vị Cung Cấp', endpoint: '/donvicungcap', primaryKey: 'MaDV', icon: 'bx-buildings',
-                fields: [
-                    { key: 'MaDV', label: 'Mã ĐVCC', type: 'text' },
-                    { key: 'Ten', label: 'Tên Đơn Vị', type: 'text' },
-                    { key: 'DiaChi', label: 'Địa Chỉ', type: 'text' }
-                ]
-            },
-            khohang: {
-                title: 'Kho Hàng', endpoint: '/khohang', primaryKey: 'MaKho', icon: 'bx-store-alt',
-                fields: [
-                    { key: 'MaKho', label: 'Mã Kho', type: 'text' },
-                    { key: 'DiaChi', label: 'Địa Chỉ Kho', type: 'text' }
-                ]
-            },
-            chinhanh: {
-                title: 'Chi Nhánh', endpoint: '/chinhanh', primaryKey: 'MaCN', icon: 'bx-git-branch',
-                fields: [
-                    { key: 'MaCN', label: 'Mã Chi Nhánh', type: 'text' },
-                    { key: 'Ten', label: 'Tên Chi Nhánh', type: 'text' },
-                    { key: 'DiaChi', label: 'Địa Chỉ', type: 'text' }
-                ]
-            },
-            khachhang: {
-                title: 'Khách Hàng', endpoint: '/khachhang', primaryKey: 'MaKH', icon: 'bx-user',
-                fields: [
-                    { key: 'MaKH', label: 'Mã KH', type: 'text' },
-                    { key: 'Ten', label: 'Tên KH', type: 'text' },
-                    { key: 'TheTichDiem', label: 'Thẻ Tích Điểm', type: 'text' },
-                    { key: 'Email', label: 'Email', type: 'email' },
-                    { key: 'SoNha', label: 'Số Nhà', type: 'text' },
-                    { key: 'Phuong', label: 'Phường', type: 'text' },
-                    { key: 'Quan', label: 'Quận', type: 'text' },
-                    { key: 'ThanhPho', label: 'Thành Phố', type: 'text' }
-                ]
-            },
-            vitri: {
-                title: 'Vị Trí Công Việc', endpoint: '/vitri', primaryKey: 'MaViTri', icon: 'bx-briefcase',
-                fields: [
-                    { key: 'MaViTri', label: 'Mã Vị Trí', type: 'text' },
-                    { key: 'TenViTri', label: 'Tên Vị Trí', type: 'text' },
-                    { key: 'LuongTheoGio', label: 'Lương / Giờ', type: 'number' }
-                ]
-            },
-            nhanvien: {
-                title: 'Nhân Viên', endpoint: '/nhanvien', primaryKey: 'MaNV', icon: 'bx-id-card',
-                fields: [
-                    { key: 'MaNV', label: 'Mã NV', type: 'text' },
-                    { key: 'HoVaTen', label: 'Họ & Tên', type: 'text' },
-                    { key: 'Email', label: 'Email', type: 'email' },
-                    { key: 'SoDienThoai', label: 'Số Điện Thoại', type: 'text' },
-                    { key: 'DiaChi', label: 'Địa Chỉ', type: 'text' },
-                    { key: 'ThoiGianLamViecTrongNgay', label: 'Giờ làm/Ngày', type: 'number' },
-                    { key: 'MaCN', label: 'Mã Chi Nhánh', type: 'text' },
-                    { key: 'MaNguoiQuanLy', label: 'Mã NQL', type: 'text' },
-                    { key: 'MaViTri', label: 'Mã Vị Trí', type: 'text' }
-                ]
-            }
-        };
-
-        let currentEntityKey = null;
-
-        // Render Sidebar
-        const sidebarMenu = document.getElementById('sidebar-menu');
-        for (const [key, config] of Object.entries(schemaConfig)) {
-            sidebarMenu.innerHTML += `<li><a onclick="loadEntity('${key}')" id="menu-${key}"><i class='bx ${config.icon}'></i> ${config.title}</a></li>`;
-        }
-
-        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
-
-        // Tải dữ liệu Bảng
-        async function loadEntity(key) {
-            document.querySelectorAll('.nav-list a').forEach(el => el.classList.remove('active'));
-            document.getElementById(`menu-${key}`).classList.add('active');
-            
-            currentEntityKey = key;
-            const config = schemaConfig[key];
-            
-            document.getElementById('page-title').innerText = config.title;
-            document.getElementById('btn-add-new').style.display = 'flex';
-            document.getElementById('table-container').innerHTML = '<p>Đang tải dữ liệu...</p>';
-
-            try {
-                const res = await axios.get(`${API_URL}${config.endpoint}`);
-                const data = res.data;
-
-                // Build Table Head
-                let tableHTML = `<table><thead><tr>`;
-                config.fields.forEach(f => tableHTML += `<th>${f.label}</th>`);
-                tableHTML += `<th>Hành động</th></tr></thead><tbody>`;
-
-                // Build Table Body
-                if (data.length === 0) tableHTML += `<tr><td colspan="${config.fields.length + 1}">Chưa có dữ liệu</td></tr>`;
-                
-                data.forEach(item => {
-                    tableHTML += `<tr>`;
-                    config.fields.forEach(f => tableHTML += `<td>${item[f.key] !== null ? item[f.key] : ''}</td>`);
-                    
-                    // Nút bấm gài Data tĩnh để dễ lấy khi bấm Sửa
-                    const idVal = item[config.primaryKey];
-                    const encodedItem = encodeURIComponent(JSON.stringify(item));
-                    
-                    tableHTML += `
-                        <td>
-                            <button class="action-btn btn-edit" onclick="showModal(false, '${encodedItem}')"><i class='bx bx-edit'></i></button>
-                            <button class="action-btn btn-delete" onclick="deleteRecord('${idVal}')"><i class='bx bx-trash'></i></button>
-                        </td>
-                    </tr>`;
-                });
-
-                tableHTML += `</tbody></table>`;
-                document.getElementById('table-container').innerHTML = tableHTML;
-            } catch (error) {
-                document.getElementById('table-container').innerHTML = '<p style="color:red">Lỗi tải dữ liệu. Hãy kiểm tra Backend!</p>';
-            }
-        }
-
-        // Hiện Form Thêm / Sửa
-        async function showModal(isAdd = true, encodedData = null) {
-            const config = schemaConfig[currentEntityKey];
-            const itemData = encodedData ? JSON.parse(decodeURIComponent(encodedData)) : {};
-
-            // Sinh ô nhập liệu HTML linh hoạt
-            let htmlInputs = '';
-            config.fields.forEach(f => {
-                const val = isAdd ? '' : (itemData[f.key] || '');
-                const readonlyAttr = (!isAdd && f.key === config.primaryKey) ? 'readonly style="background:#eee"' : '';
-                htmlInputs += `<input id="swal-${f.key}" type="${f.type}" class="swal2-input" placeholder="${f.label}" value="${val}" ${readonlyAttr}>`;
-            });
-
-            const { value: formValues } = await Swal.fire({
-                title: isAdd ? `Thêm ${config.title}` : `Sửa ${config.title}`,
-                html: htmlInputs,
-                focusConfirm: false,
-                showCancelButton: true,
-                confirmButtonText: 'Lưu',
-                cancelButtonText: 'Hủy',
-                preConfirm: () => {
-                    let data = {};
-                    config.fields.forEach(f => data[f.key] = document.getElementById(`swal-${f.key}`).value);
-                    return data;
+ <script>
+    const API_URL = 'https://backendcsdl.onrender.com/api'; // Giữ nguyên link backend của bạn
+    
+    // ==========================================
+    // CẤU HÌNH SCHEMA MỚI (Hỗ trợ Dropdown - Select)
+    // ==========================================
+    const schemaConfig = {
+        loaisp: {
+            title: 'Loại Sản Phẩm', endpoint: '/loaisp', primaryKey: 'MaLoai', icon: 'bx-category',
+            fields: [
+                { key: 'MaLoai', label: 'Mã Loại', type: 'text' },
+                { key: 'TenLoai', label: 'Tên Loại', type: 'text' }
+            ]
+        },
+        sanpham: {
+            title: 'Sản Phẩm', endpoint: '/sanpham', primaryKey: 'MaSP', icon: 'bx-box',
+            fields: [
+                { key: 'MaSP', label: 'Mã Sản Phẩm', type: 'text' },
+                { key: 'Ten', label: 'Tên Sản Phẩm', type: 'text' },
+                { key: 'MoTa', label: 'Mô Tả', type: 'text' },
+                { key: 'DonGia', label: 'Đơn Giá', type: 'number' },
+                // 👇 ĐIỂM MỚI Ở ĐÂY: Chuyển type thành 'select' và thêm thông tin nguồn dữ liệu
+                { 
+                    key: 'MaLoai', 
+                    label: 'Loại Sản Phẩm', 
+                    type: 'select', 
+                    sourceEndpoint: '/loaisp', // Gọi API này để lấy list
+                    valueKey: 'MaLoai',        // Lấy cột này làm giá trị ngầm (value)
+                    labelKey: 'TenLoai'        // Lấy cột này hiển thị cho người dùng đọc
                 }
-            });
+            ]
+        },
+        // ... (Bạn có thể giữ nguyên cấu hình các bảng khác như donvicungcap, khohang... ở đây)
+        vitri: {
+            title: 'Vị Trí Công Việc', endpoint: '/vitri', primaryKey: 'MaViTri', icon: 'bx-briefcase',
+            fields: [
+                { key: 'MaViTri', label: 'Mã Vị Trí', type: 'text' },
+                { key: 'TenViTri', label: 'Tên Vị Trí', type: 'text' },
+                { key: 'LuongTheoGio', label: 'Lương / Giờ', type: 'number' }
+            ]
+        },
+        chinhanh: {
+            title: 'Chi Nhánh', endpoint: '/chinhanh', primaryKey: 'MaCN', icon: 'bx-git-branch',
+            fields: [
+                { key: 'MaCN', label: 'Mã Chi Nhánh', type: 'text' },
+                { key: 'Ten', label: 'Tên Chi Nhánh', type: 'text' },
+                { key: 'DiaChi', label: 'Địa Chỉ', type: 'text' }
+            ]
+        },
+        nhanvien: {
+            title: 'Nhân Viên', endpoint: '/nhanvien', primaryKey: 'MaNV', icon: 'bx-id-card',
+            fields: [
+                { key: 'MaNV', label: 'Mã NV', type: 'text' },
+                { key: 'HoVaTen', label: 'Họ & Tên', type: 'text' },
+                { key: 'Email', label: 'Email', type: 'email' },
+                { key: 'SoDienThoai', label: 'Số Điện Thoại', type: 'text' },
+                { key: 'DiaChi', label: 'Địa Chỉ', type: 'text' },
+                { key: 'ThoiGianLamViecTrongNgay', label: 'Giờ làm/Ngày', type: 'number' },
+                // Áp dụng Select cho khóa ngoại của Nhân viên luôn:
+                { key: 'MaCN', label: 'Thuộc Chi Nhánh', type: 'select', sourceEndpoint: '/chinhanh', valueKey: 'MaCN', labelKey: 'Ten' },
+                { key: 'MaViTri', label: 'Vị Trí Công Việc', type: 'select', sourceEndpoint: '/vitri', valueKey: 'MaViTri', labelKey: 'TenViTri' },
+                { key: 'MaNguoiQuanLy', label: 'Mã NQL (Gõ tay hoặc để trống)', type: 'text' } 
+            ]
+        }
+    };
 
-            if (formValues) {
+    let currentEntityKey = null;
+    const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+
+    // 1. Render Menu Sidebar
+    const sidebarMenu = document.getElementById('sidebar-menu');
+    for (const [key, config] of Object.entries(schemaConfig)) {
+        sidebarMenu.innerHTML += `<li><a onclick="loadEntity('${key}')" id="menu-${key}"><i class='bx ${config.icon}'></i> ${config.title}</a></li>`;
+    }
+
+    // 2. Tải dữ liệu Bảng
+    async function loadEntity(key) {
+        document.querySelectorAll('.nav-list a').forEach(el => el.classList.remove('active'));
+        document.getElementById(`menu-${key}`).classList.add('active');
+        currentEntityKey = key;
+        const config = schemaConfig[key];
+        
+        document.getElementById('page-title').innerText = config.title;
+        document.getElementById('btn-add-new').style.display = 'flex';
+        document.getElementById('table-container').innerHTML = '<p><i class="bx bx-loader bx-spin"></i> Đang tải dữ liệu...</p>';
+
+        try {
+            const res = await axios.get(`${API_URL}${config.endpoint}`);
+            const data = res.data;
+
+            let tableHTML = `<table><thead><tr>`;
+            config.fields.forEach(f => tableHTML += `<th>${f.label}</th>`);
+            tableHTML += `<th>Hành động</th></tr></thead><tbody>`;
+
+            if (data.length === 0) tableHTML += `<tr><td colspan="${config.fields.length + 1}">Chưa có dữ liệu</td></tr>`;
+            
+            data.forEach(item => {
+                tableHTML += `<tr>`;
+                config.fields.forEach(f => tableHTML += `<td>${item[f.key] !== null ? item[f.key] : ''}</td>`);
+                
+                const idVal = item[config.primaryKey];
+                const encodedItem = encodeURIComponent(JSON.stringify(item));
+                
+                tableHTML += `
+                    <td>
+                        <button class="action-btn btn-edit" onclick="showModal(false, '${encodedItem}')"><i class='bx bx-edit'></i></button>
+                        <button class="action-btn btn-delete" onclick="deleteRecord('${idVal}')"><i class='bx bx-trash'></i></button>
+                    </td>
+                </tr>`;
+            });
+            tableHTML += `</tbody></table>`;
+            document.getElementById('table-container').innerHTML = tableHTML;
+        } catch (error) {
+            document.getElementById('table-container').innerHTML = '<p style="color:red">Lỗi tải dữ liệu. Hãy kiểm tra Backend!</p>';
+        }
+    }
+
+    // 3. Hiện Form Thêm / Sửa (ĐÃ NÂNG CẤP ĐỂ XỬ LÝ DROPDOWN)
+    async function showModal(isAdd = true, encodedData = null) {
+        const config = schemaConfig[currentEntityKey];
+        const itemData = encodedData ? JSON.parse(decodeURIComponent(encodedData)) : {};
+
+        // Hiển thị SweetAlert ở chế độ Loading trước khi render Form (vì phải đợi API lấy list dữ liệu)
+        Swal.fire({ title: 'Đang tải biểu mẫu...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        let htmlInputs = '';
+
+        // Vòng lặp lấy cấu trúc input
+        for (let i = 0; i < config.fields.length; i++) {
+            const f = config.fields[i];
+            const val = isAdd ? '' : (itemData[f.key] || '');
+            const readonlyAttr = (!isAdd && f.key === config.primaryKey) ? 'readonly style="background:#eee"' : '';
+
+            // Nếu field là dạng Select Dropdown
+            if (f.type === 'select') {
                 try {
-                    const pkVal = formValues[config.primaryKey];
-                    if (isAdd) {
-                        await axios.post(`${API_URL}${config.endpoint}`, formValues);
-                    } else {
-                        await axios.put(`${API_URL}${config.endpoint}/${pkVal}`, formValues);
-                    }
-                    Toast.fire({ icon: 'success', title: 'Thành công!' });
+                    // Gọi API lấy danh sách dữ liệu khóa ngoại (Vd: lấy danh sách Loại SP)
+                    const resDropdown = await axios.get(`${API_URL}${f.sourceEndpoint}`);
+                    const options = resDropdown.data;
+                    
+                    htmlInputs += `<select id="swal-${f.key}" class="swal2-input" style="height: auto; padding: 12px;" ${readonlyAttr}>`;
+                    htmlInputs += `<option value="" disabled ${!val ? 'selected' : ''}>-- Chọn ${f.label} --</option>`;
+                    
+                    options.forEach(opt => {
+                        const isSelected = opt[f.valueKey] === val ? 'selected' : '';
+                        // Hiển thị Tên nhưng lưu giá trị là Mã
+                        htmlInputs += `<option value="${opt[f.valueKey]}" ${isSelected}>${opt[f.labelKey]} (${opt[f.valueKey]})</option>`;
+                    });
+                    htmlInputs += `</select>`;
+                } catch (err) {
+                    // Nếu lỗi API, trả về ô text báo lỗi để ko bị treo app
+                    htmlInputs += `<input id="swal-${f.key}" type="text" class="swal2-input" value="Lỗi tải danh sách" disabled>`;
+                }
+            } 
+            // Nếu field là input text/number bình thường
+            else {
+                htmlInputs += `<input id="swal-${f.key}" type="${f.type}" class="swal2-input" placeholder="${f.label}" value="${val}" ${readonlyAttr}>`;
+            }
+        }
+
+        // Mở Modal form nhập liệu thực sự
+        const { value: formValues } = await Swal.fire({
+            title: isAdd ? `Thêm ${config.title}` : `Sửa ${config.title}`,
+            html: htmlInputs,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Lưu',
+            cancelButtonText: 'Hủy',
+            preConfirm: () => {
+                let data = {};
+                config.fields.forEach(f => data[f.key] = document.getElementById(`swal-${f.key}`).value);
+                return data;
+            }
+        });
+
+        // Xử lý Gửi data lên server
+        if (formValues) {
+            try {
+                const pkVal = formValues[config.primaryKey];
+                if (isAdd) {
+                    await axios.post(`${API_URL}${config.endpoint}`, formValues);
+                } else {
+                    await axios.put(`${API_URL}${config.endpoint}/${pkVal}`, formValues);
+                }
+                Toast.fire({ icon: 'success', title: 'Thành công!' });
+                loadEntity(currentEntityKey);
+            } catch (error) {
+                Swal.fire('Lỗi', error.response?.data?.error || error.message, 'error');
+            }
+        }
+    }
+
+    // 4. Xóa bản ghi
+    async function deleteRecord(id) {
+        const config = schemaConfig[currentEntityKey];
+        Swal.fire({
+            title: 'Chắc chắn xóa?', text: `Không thể khôi phục dữ liệu này!`, icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#e74c3c', confirmButtonText: 'Xóa ngay'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await axios.delete(`${API_URL}${config.endpoint}/${id}`);
+                    Toast.fire({ icon: 'success', title: 'Đã xóa!' });
                     loadEntity(currentEntityKey);
                 } catch (error) {
-                    Swal.fire('Lỗi', error.response?.data?.error || error.message, 'error');
+                    Swal.fire('Lỗi', 'Không thể xóa do vướng khóa ngoại (Dữ liệu đang được dùng ở bảng khác)', 'error');
                 }
             }
-        }
+        });
+    }
 
-        // Xóa bản ghi
-        async function deleteRecord(id) {
-            const config = schemaConfig[currentEntityKey];
-            Swal.fire({
-                title: 'Chắc chắn xóa?', text: `Không thể khôi phục dữ liệu này!`, icon: 'warning',
-                showCancelButton: true, confirmButtonColor: '#e74c3c', confirmButtonText: 'Xóa ngay'
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        await axios.delete(`${API_URL}${config.endpoint}/${id}`);
-                        Toast.fire({ icon: 'success', title: 'Đã xóa!' });
-                        loadEntity(currentEntityKey);
-                    } catch (error) {
-                        Swal.fire('Lỗi', 'Không thể xóa do vướng khóa ngoại (Dữ liệu đang được dùng ở bảng khác)', 'error');
-                    }
-                }
-            });
-        }
-
-        // Gắn sự kiện nút thêm mới
-        document.getElementById('btn-add-new').addEventListener('click', () => showModal(true));
-    </script>
+    // Gắn sự kiện nút thêm mới
+    document.getElementById('btn-add-new').addEventListener('click', () => showModal(true));
+</script>
 </body>
 </html>
