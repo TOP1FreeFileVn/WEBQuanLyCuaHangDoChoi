@@ -216,85 +216,82 @@
         }
 
         // 3. HIỂN THỊ FORM (THÊM / SỬA)
-        async function showModal(isAdd = true, encodedData = null) {
-            const config = schemaConfig[currentEntityKey];
-            const itemData = encodedData ? JSON.parse(decodeURIComponent(encodedData)) : {};
+        // Thay thế hàm showModal cũ bằng cái này:
+async function showModal(isAdd = true, encodedData = null) {
+    const config = schemaConfig[currentEntityKey];
+    const itemData = encodedData ? JSON.parse(decodeURIComponent(encodedData)) : {};
 
-            // Mở popup loading vì nếu có dropdown cần chờ lấy dữ liệu API
-            Swal.fire({ title: 'Đang chuẩn bị biểu mẫu...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+    // 1. Hiện thông báo đang chuẩn bị (Chỉ hiện nếu thực sự có trường select)
+    const hasSelect = config.fields.some(f => f.type === 'select');
+    if (hasSelect) {
+        Swal.fire({ 
+            title: 'Đang tải danh sách...', 
+            allowOutsideClick: false, 
+            didOpen: () => { Swal.showLoading(); } 
+        });
+    }
 
-            let htmlInputs = '';
+    let htmlInputs = '';
+    for (let i = 0; i < config.fields.length; i++) {
+        const f = config.fields[i];
+        const val = isAdd ? '' : (itemData[f.key] || '');
+        const readonlyAttr = (!isAdd && f.key === config.primaryKey) ? 'readonly style="background:#eee"' : '';
 
-            // Quét qua từng trường khai báo trong cấu hình để sinh thẻ Input/Select
-            for (let i = 0; i < config.fields.length; i++) {
-                const f = config.fields[i];
-                const val = isAdd ? '' : (itemData[f.key] || '');
-                // Khóa không cho sửa Mã nếu đang ở chế độ Sửa
-                const readonlyAttr = (!isAdd && f.key === config.primaryKey) ? 'readonly style="background:#eee"' : '';
-
-                if (f.type === 'select') {
-                    try {
-                        const resDropdown = await axios.get(`${API_URL}${f.sourceEndpoint}`);
-                        const options = resDropdown.data;
-                        
-                        htmlInputs += `<select id="swal-${f.key}" class="swal2-select" style="display: flex; height: 45px;" ${readonlyAttr}>`;
-                        htmlInputs += `<option value="" disabled ${!val ? 'selected' : ''}>-- Chọn ${f.label} --</option>`;
-                        
-                        options.forEach(opt => {
-                            const isSelected = opt[f.valueKey] === val ? 'selected' : '';
-                            htmlInputs += `<option value="${opt[f.valueKey]}" ${isSelected}>${opt[f.labelKey]} (${opt[f.valueKey]})</option>`;
-                        });
-                        htmlInputs += `</select>`;
-                    } catch (err) {
-                        htmlInputs += `<input id="swal-${f.key}" type="text" class="swal2-input" value="Lỗi tải danh sách" disabled>`;
-                    }
-                } else {
-                    htmlInputs += `<input id="swal-${f.key}" type="${f.type}" class="swal2-input" placeholder="${f.label}" value="${val}" ${readonlyAttr}>`;
-                }
+        if (f.type === 'select') {
+            try {
+                const resDropdown = await axios.get(`${API_URL}${f.sourceEndpoint}`);
+                const options = resDropdown.data;
+                htmlInputs += `<select id="swal-${f.key}" class="swal2-select" style="display: flex; height: 45px;">`;
+                htmlInputs += `<option value="" disabled ${!val ? 'selected' : ''}>-- Chọn ${f.label} --</option>`;
+                options.forEach(opt => {
+                    const isSelected = String(opt[f.valueKey]) === String(val) ? 'selected' : '';
+                    htmlInputs += `<option value="${opt[f.valueKey]}" ${isSelected}>${opt[f.labelKey]} (${opt[f.valueKey]})</option>`;
+                });
+                htmlInputs += `</select>`;
+            } catch (err) {
+                htmlInputs += `<input id="swal-${f.key}" class="swal2-input" value="Lỗi tải dữ liệu" disabled>`;
             }
-
-            // Hiện Form nhập liệu
-            const { value: formValues } = await Swal.fire({
-                title: isAdd ? `Thêm mới ${config.title}` : `Sửa ${config.title}`,
-                html: htmlInputs,
-                focusConfirm: false,
-                showCancelButton: true,
-                confirmButtonText: 'Lưu dữ liệu',
-                cancelButtonText: 'Hủy bỏ',
-                width: '600px',
-                preConfirm: () => {
-                    let data = {};
-                    let hasError = false;
-                    config.fields.forEach(f => {
-                        const ele = document.getElementById(`swal-${f.key}`);
-                        if (!ele.value && f.key === config.primaryKey) hasError = true; // Bắt buộc nhập khóa chính
-                        data[f.key] = ele.value;
-                    });
-                    if (hasError) {
-                        Swal.showValidationMessage('Vui lòng nhập Mã (Khóa chính) đầy đủ!');
-                        return false;
-                    }
-                    return data;
-                }
-            });
-
-            // Gửi dữ liệu về Backend
-            if (formValues) {
-                try {
-                    const pkVal = formValues[config.primaryKey];
-                    if (isAdd) {
-                        await axios.post(`${API_URL}${config.endpoint}`, formValues);
-                        Toast.fire({ icon: 'success', title: 'Thêm mới thành công!' });
-                    } else {
-                        await axios.put(`${API_URL}${config.endpoint}/${pkVal}`, formValues);
-                        Toast.fire({ icon: 'success', title: 'Cập nhật thành công!' });
-                    }
-                    loadEntity(currentEntityKey);
-                } catch (error) {
-                    Swal.fire('Lỗi', error.response?.data?.error || error.message, 'error');
-                }
-            }
+        } else {
+            htmlInputs += `<input id="swal-${f.key}" type="${f.type}" class="swal2-input" placeholder="${f.label}" value="${val}" ${readonlyAttr}>`;
         }
+    }
+
+    // 2. QUAN TRỌNG: Đóng Loading của Swal trước khi hiện Modal nhập liệu thật
+    Swal.close(); 
+
+    const { value: formValues } = await Swal.fire({
+        title: isAdd ? `Thêm mới ${config.title}` : `Sửa ${config.title}`,
+        html: htmlInputs,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Lưu dữ liệu',
+        cancelButtonText: 'Hủy bỏ',
+        width: '600px',
+        preConfirm: () => {
+            let data = {};
+            config.fields.forEach(f => {
+                data[f.key] = document.getElementById(`swal-${f.key}`).value;
+            });
+            return data;
+        }
+    });
+
+    if (formValues) {
+        try {
+            const pkVal = formValues[config.primaryKey];
+            if (isAdd) {
+                await axios.post(`${API_URL}${config.endpoint}`, formValues);
+                Toast.fire({ icon: 'success', title: 'Thêm thành công!' });
+            } else {
+                await axios.put(`${API_URL}${config.endpoint}/${pkVal}`, formValues);
+                Toast.fire({ icon: 'success', title: 'Cập nhật thành công!' });
+            }
+            loadEntity(currentEntityKey);
+        } catch (error) {
+            Swal.fire('Lỗi', error.response?.data?.error || error.message, 'error');
+        }
+    }
+}
 
         // 4. XÓA BẢN GHI
         function deleteRecord(id) {
