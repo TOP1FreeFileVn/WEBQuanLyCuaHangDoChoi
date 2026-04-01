@@ -405,6 +405,47 @@
         if (!maKH) return Swal.fire('Lỗi', 'Vui lòng chọn Khách hàng!', 'warning');
         if (!maNV) return Swal.fire('Lỗi', 'Vui lòng chọn Nhân viên bán!', 'warning');
 
+        // Tính tổng tiền giỏ hàng
+        let tongTien = 0;
+        cart.forEach(item => tongTien += (item.DonGiaBan * item.SoLuongMua));
+
+        // NẾU KHÁCH CHỌN CHUYỂN KHOẢN -> HIỆN MÃ QR
+        if (pttt === 'Chuyển khoản') {
+            console.log("hello");
+            // ĐIỀN THÔNG TIN TÀI KHOẢN NGÂN HÀNG CỦA BẠN VÀO ĐÂY
+            const BANK_ID = 'MB'; // Ví dụ: MB, VCB, VTB, TCB, ACB...
+            const STK = '0975810393'; // Số tài khoản của bạn
+            const TEN_TK = 'NGUYEN DINH CUONG QUOC'; // Tên chủ tài khoản viết không dấu
+            
+            // Nội dung chuyển khoản mặc định
+            const noiDung = `Thanh toan tien do choi`; 
+            
+            // Tạo link ảnh VietQR
+            const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${STK}-compact2.png?amount=${tongTien}&addInfo=${noiDung}&accountName=${TEN_TK}`;
+
+            // Hiện Popup mã QR bằng SweetAlert2
+            const result = await Swal.fire({
+                title: 'Mã QR Thanh Toán',
+                text: `Khách hàng quét mã để thanh toán ${formatVND(tongTien)}`,
+                imageUrl: qrUrl,
+                imageWidth: 300,
+                imageHeight: 300,
+                imageAlt: 'Mã QR VietQR',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#dc3545',
+                confirmButtonText: 'Đã nhận được tiền',
+                cancelButtonText: 'Hủy thanh toán',
+                allowOutsideClick: false // Bắt buộc phải bấm nút mới đóng được
+            });
+
+            // Nếu nhân viên bấm "Hủy thanh toán" thì dừng lại, không tạo đơn
+            if (!result.isConfirmed) {
+                return;
+            }
+        }
+
+        // NẾU LÀ TIỀN MẶT HOẶC ĐÃ QUÉT QR XONG -> BẮT ĐẦU TẠO ĐƠN HÀNG
         const btnCheckout = document.getElementById('btn-checkout');
         btnCheckout.disabled = true;
         btnCheckout.innerHTML = `<i class='bx bx-loader bx-spin'></i> Đang xử lý...`;
