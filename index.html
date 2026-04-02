@@ -140,7 +140,6 @@
 </div>
 
 <script>
-    // CHÚ Ý: Đảm bảo đường link backend này đúng với render của bạn
     const API_URL = 'https://backendcsdl.onrender.com/api'; 
 
     const schemaConfig = {
@@ -236,7 +235,7 @@
         document.getElementById('search-container').style.display = 'flex';
         document.getElementById('search-input').value = '';
         
-        // CHỈ HIỆN NÚT THÊM MỚI NẾU LÀ ADMIN VÀ KHÔNG NẰM TRONG DANH SÁCH CẤM THÊM
+        // KHÓA NÚT THÊM MỚI TẠI HÓA ĐƠN VÀ PHIẾU KHO
         if (isAdmin && key !== 'phieukho' && key !== 'donhang') {
             document.getElementById('btn-add-new').style.display = 'flex'; 
         }
@@ -249,6 +248,8 @@
 
             let tableHTML = `<table><thead><tr>`;
             config.fields.forEach(f => tableHTML += `<th>${f.label}</th>`);
+            
+            // LUÔN HIỆN CỘT HÀNH ĐỘNG VỚI HÓA ĐƠN VÀ PHIẾU KHO ĐỂ IN PDF
             let hasAction = isAdmin || key === 'donhang' || key === 'phieukho';
             if (hasAction) tableHTML += `<th width="200" style="text-align:center;">Hành động</th>`;
             tableHTML += `</tr></thead><tbody>`;
@@ -261,7 +262,6 @@
                     config.fields.forEach(f => {
                         let cellValue = item[f.key] !== null && item[f.key] !== undefined ? item[f.key] : '';
                         
-                        // XỬ LÝ HIỂN THỊ CHÍNH XÁC GIỜ PHÚT GIÂY THEO FORMAT BẠN YÊU CẦU
                         if (f.type === 'date' && cellValue) {
                             let d = new Date(cellValue);
                             let h = String(d.getHours()).padStart(2, '0');
@@ -270,14 +270,11 @@
                             let day = String(d.getDate()).padStart(2, '0');
                             let mon = String(d.getMonth() + 1).padStart(2, '0');
                             let yr = d.getFullYear();
-                            
-                            // Định dạng in ra: HH:MM:SS - DD/MM/YYYY
                             cellValue = `${h}:${m}:${s} - ${day}/${mon}/${yr}`;
                         }
                         
                         if ((f.label.includes("Giá") || f.label.includes("Tiền") || f.label.includes("Lương")) && cellValue !== '') cellValue = formatVND(cellValue);
                         
-                        // Định dạng màu cho Trạng thái tiền
                         if(f.key === 'TrangThaiGD' && cellValue === 'Thành công') cellValue = `<span class="badge badge-success">${cellValue}</span>`;
                         else if(f.key === 'TrangThaiGD') cellValue = `<span class="badge" style="background:#eee;">${cellValue}</span>`;
                         
@@ -295,7 +292,9 @@
                         if (key === 'donhang') {
                             tableHTML += `<button class="btn-add" style="background:#28a745; padding: 6px 10px; font-size: 13px; display:inline-block; margin-right:5px;" onclick="printInvoicePDF('${idVal}')"><i class='bx bx-receipt'></i> In Hóa Đơn</button>`;
                         }
-                        if (isAdmin && key !== 'phieukho') {
+                        
+                        // CHỈ HIỆN NÚT SỬA/XÓA NẾU KHÔNG PHẢI PHIẾU KHO VÀ HÓA ĐƠN
+                        if (isAdmin && key !== 'phieukho' && key !== 'donhang') {
                             tableHTML += `<button class="action-btn btn-edit" title="Sửa" onclick="showModal(false, '${encodedItem}')"><i class='bx bx-edit'></i></button>
                                           <button class="action-btn btn-delete" title="Xóa" onclick="deleteRecord('${idVal}')"><i class='bx bx-trash'></i></button>`;
                         }
@@ -464,8 +463,8 @@
                     <div class="card"><div class="card-icon green"><i class='bx bx-shopping-bag'></i></div><div class="card-info"><p>Tổng Hóa Đơn</p><h3>${data.tongDonHang} Đơn</h3></div></div>
                 </div>
                 <div class="charts-container">
-                    <div class="chart-box"><h4>Doanh Thu Theo Chi Nhánh</h4><canvas id="branchChart"></canvas></div>
-                    <div class="chart-box"><h4>Khu vực bán chạy</h4><canvas id="cityChart"></canvas></div>
+                    <div class="chart-box"><h4>Doanh Thu Theo Địa Điểm</h4><canvas id="branchChart"></canvas></div>
+                    <div class="chart-box"><h4>Doanh Thu Theo Thành Phố</h4><canvas id="cityChart"></canvas></div>
                 </div>
             `;
             const ctx1 = document.getElementById('branchChart').getContext('2d'); chartInstance1 = new Chart(ctx1, { type: 'bar', data: { labels: data.chiNhanh.map(i => i.ChiNhanh), datasets: [{ label: 'Doanh thu (VNĐ)', data: data.chiNhanh.map(i => i.DoanhThu), backgroundColor: '#007bff' }] }});
@@ -539,7 +538,6 @@
             if (!data || data.length === 0) return Swal.fire('Lỗi', 'Phiếu kho này bị rỗng!', 'error');
             const p = data[0];
             
-            // XỬ LÝ LẠI ĐỊNH DẠNG THỜI GIAN CHO BẢN IN PHIẾU KHO
             let d = new Date(p.NgayLap);
             let timeFmt = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')} - ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 
@@ -559,7 +557,6 @@
             if (!data || data.length === 0) return Swal.fire('Lỗi', 'Đơn hàng rỗng!', 'error');
             const p = data[0];
             
-            // XỬ LÝ LẠI ĐỊNH DẠNG THỜI GIAN CHO BẢN IN HÓA ĐƠN
             let d = new Date(p.NgayMua);
             let timeFmt = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')} - ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 
