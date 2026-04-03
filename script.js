@@ -77,7 +77,7 @@ let chartInstance2 = null;
 let cart = [];
 let posProducts = [];
 let posStaffs = [];
-
+let posCustomers = [];
 const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2500 });
 const formatVND = (num) => Number(num).toLocaleString('vi-VN') + ' đ';
 
@@ -180,8 +180,15 @@ async function renderPOS() {
     document.getElementById('table-container').innerHTML = `<div style="text-align:center; padding: 40px;"><i class='bx bx-loader bx-spin' style="font-size: 30px; color: var(--primary);"></i><p style="margin-top:10px;">Đang tải máy POS...</p></div>`;
     cart = []; 
     try {
-        const [resSP, resNV] = await Promise.all([ axios.get(`${API_URL}/pos/sanpham`), axios.get(`${API_URL}/nhanvien`) ]);
-        posProducts = resSP.data; posStaffs = resNV.data;
+        // GỌI THÊM API LẤY DANH SÁCH KHÁCH HÀNG
+        const [resSP, resNV, resKH] = await Promise.all([ 
+            axios.get(`${API_URL}/pos/sanpham`), 
+            axios.get(`${API_URL}/nhanvien`),
+            axios.get(`${API_URL}/khachhang`)
+        ]);
+        posProducts = resSP.data; 
+        posStaffs = resNV.data;
+        posCustomers = resKH.data;
 
         let posHTML = `
             <div class="pos-container">
@@ -205,6 +212,11 @@ async function renderPOS() {
                     <div class="cart-footer">
                         <div class="cart-total"><span>Tổng cộng:</span><span id="cart-total-price">0 đ</span></div>
                         <div class="cart-form">
+                            <select id="pos-khachhang">
+                                <option value="" selected>-- Khách vãng lai (Bỏ trống nếu không có thông tin) --</option>
+                                ${posCustomers.map(kh => `<option value="${kh.MaKH}">${kh.TenKH} - SĐT: ${kh.SDT || 'Không có'}</option>`).join('')}
+                            </select>
+
                             <select id="pos-nhanvien"><option value="" disabled selected>-- Chọn Nhân Viên Bán (Bắt buộc) --</option>${posStaffs.map(nv => `<option value="${nv.MaNV}">${nv.HoTen} (${nv.MaNV})</option>`).join('')}</select>
                             <select id="pos-pttt"><option value="Tiền mặt" selected>Thanh toán: Tiền mặt</option><option value="Chuyển khoản">Thanh toán: Chuyển khoản</option><option value="Quẹt thẻ">Thanh toán: Quẹt thẻ</option></select>
                             <button class="btn-checkout" id="btn-checkout" onclick="processCheckout()"><i class='bx bx-check-circle'></i> THANH TOÁN</button>
@@ -217,7 +229,6 @@ async function renderPOS() {
         document.getElementById('btn-checkout').disabled = true;
     } catch (error) { document.getElementById('table-container').innerHTML = `<div style="text-align:center; color:#e74c3c; padding:20px;"><i class='bx bx-error-alt' style="font-size: 40px;"></i><p>Lỗi tải POS: ${error.message}</p></div>`; }
 }
-
 function searchPOS() {
     let input = document.getElementById("pos-search-input").value.toLowerCase();
     let cards = document.querySelectorAll(".pos-item");
