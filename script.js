@@ -280,6 +280,7 @@ async function processCheckout() {
     btnCheckout.innerHTML = `<i class='bx bx-loader bx-spin'></i> Đang xử lý...`;
     const maNV = document.getElementById('pos-nhanvien').value; 
     const pttt = document.getElementById('pos-pttt').value;
+    const maKH = document.getElementById('pos-khachhang').value || null;
     if (!maNV) {
         btnCheckout.disabled = false; btnCheckout.innerHTML = `<i class='bx bx-check-circle'></i> THANH TOÁN`;
         return Swal.fire('Lỗi', 'Vui lòng chọn Nhân viên bán!', 'warning');
@@ -319,7 +320,7 @@ async function processCheckout() {
     }
 
     try {
-        const payload = { MaDonHang: maDonHangMoi, NgayMua: new Date().toISOString().split('T')[0], PhuongThucThanhToan: pttt, MaKH: null, MaNV: maNV, ChiTiet: cart.map(item => ({ MaSP: item.MaSP, SoLuongMua: item.SoLuongMua, DonGiaBan: item.DonGiaBan })) };
+        const payload = { MaDonHang: maDonHangMoi, NgayMua: new Date().toISOString().split('T')[0], PhuongThucThanhToan: pttt, MaKH: maKH, MaNV: maNV, ChiTiet: cart.map(item => ({ MaSP: item.MaSP, SoLuongMua: item.SoLuongMua, DonGiaBan: item.DonGiaBan })) };
         const res = await axios.post(`${API_URL}/donhang`, payload);
         Swal.fire({ icon: 'success', title: 'Thành công!', text: res.data.message, timer: 3000, showConfirmButton: false });
         renderPOS(); 
